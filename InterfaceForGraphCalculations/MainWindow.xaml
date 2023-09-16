@@ -23,8 +23,13 @@
                 <MenuItem Header="Modify" ></MenuItem>
                 <MenuItem Header="Remove element" ></MenuItem>
             </MenuItem>
+            <MenuItem Header="Calculate">
+                <MenuItem Header="Path"></MenuItem>
+                <MenuItem Header="Paths"></MenuItem>
+            </MenuItem>
             <MenuItem Header="View">
                 <MenuItem Header="Canvas properties"></MenuItem>
+                <MenuItem Header="Graph properties"></MenuItem>
             </MenuItem>
             <MenuItem Header="Database">
                 <MenuItem Header="Graphs"></MenuItem>
@@ -34,6 +39,7 @@
             </MenuItem>
             <MenuItem Header="FAQ">
             </MenuItem>
+            <MenuItem Header="Help"></MenuItem>
         </Menu>
         <Canvas HorizontalAlignment="Stretch" VerticalAlignment="Stretch" Name="MainCanvas">
 
