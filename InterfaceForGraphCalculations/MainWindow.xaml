@@ -7,6 +7,36 @@
         mc:Ignorable="d"
         Title="MainWindow" Height="450" Width="800">
     <Grid>
-        
+        <Grid.ColumnDefinitions>
+        </Grid.ColumnDefinitions>
+        <Grid.RowDefinitions>
+
+        </Grid.RowDefinitions>
+        <Menu Height="20" VerticalAlignment="Top">
+            <MenuItem Header="File">
+                <MenuItem Header="New graph"></MenuItem>
+                <MenuItem Header="Open graph"></MenuItem>
+                <MenuItem Header="Save"></MenuItem>
+            </MenuItem>
+            <MenuItem Header="Edit">
+                <MenuItem Header="Add new element"></MenuItem>
+                <MenuItem Header="Modify" ></MenuItem>
+                <MenuItem Header="Remove element" ></MenuItem>
+            </MenuItem>
+            <MenuItem Header="View">
+                <MenuItem Header="Canvas properties"></MenuItem>
+            </MenuItem>
+            <MenuItem Header="Database">
+                <MenuItem Header="Graphs"></MenuItem>
+                <MenuItem Header="Vertices"></MenuItem>
+                <MenuItem Header="Branches"></MenuItem>
+                <MenuItem Header="Paths"></MenuItem>
+            </MenuItem>
+            <MenuItem Header="FAQ">
+            </MenuItem>
+        </Menu>
+        <Canvas HorizontalAlignment="Stretch" VerticalAlignment="Stretch" Name="MainCanvas">
+
+        </Canvas>
     </Grid>
 </Window>
