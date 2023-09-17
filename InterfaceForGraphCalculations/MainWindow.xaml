@@ -5,44 +5,99 @@
         xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
         xmlns:local="clr-namespace:InterfaceForGraphCalculations"
         mc:Ignorable="d"
-        Title="MainWindow" Height="450" Width="800">
-    <Grid>
+        Title="MainWindow" MinHeight="450" MinWidth="800" Height="450" Width="800" SizeChanged="Window_SizeChanged">
+    <Grid Background="White">
         <Grid.ColumnDefinitions>
+            <ColumnDefinition Width="1*"/>
+            <ColumnDefinition Width="48*"/>
+            <ColumnDefinition Width="1*"/>
+            <ColumnDefinition Width="13*"/>
+            <ColumnDefinition Width="1*"/>
         </Grid.ColumnDefinitions>
         <Grid.RowDefinitions>
-
+            <RowDefinition Height="20"/>
+            <RowDefinition Height="1*"/>
+            <RowDefinition Height="18*"/>
+            <RowDefinition Height="1*"/>
         </Grid.RowDefinitions>
-        <Menu Height="20" VerticalAlignment="Top">
+        <Menu Height="20" VerticalAlignment="Top" Grid.ColumnSpan="10">
             <MenuItem Header="File">
-                <MenuItem Header="New graph"></MenuItem>
-                <MenuItem Header="Open graph"></MenuItem>
-                <MenuItem Header="Save"></MenuItem>
+                <MenuItem Header="New graph"/>
+                <MenuItem Header="Open graph"/>
+                <MenuItem Header="Save"/>
             </MenuItem>
             <MenuItem Header="Edit">
-                <MenuItem Header="Add new element"></MenuItem>
-                <MenuItem Header="Modify" ></MenuItem>
-                <MenuItem Header="Remove element" ></MenuItem>
+                <MenuItem Header="Add new element"/>
+                <MenuItem Header="Modify"/>
+                <MenuItem Header="Remove element"/>
             </MenuItem>
             <MenuItem Header="Calculate">
-                <MenuItem Header="Path"></MenuItem>
-                <MenuItem Header="Paths"></MenuItem>
+                <MenuItem Header="Path"/>
+                <MenuItem Header="Paths"/>
             </MenuItem>
             <MenuItem Header="View">
-                <MenuItem Header="Canvas properties"></MenuItem>
-                <MenuItem Header="Graph properties"></MenuItem>
+                <MenuItem Header="Canvas properties"/>
+                <MenuItem Header="Graph properties"/>
             </MenuItem>
             <MenuItem Header="Database">
-                <MenuItem Header="Graphs"></MenuItem>
-                <MenuItem Header="Vertices"></MenuItem>
-                <MenuItem Header="Branches"></MenuItem>
-                <MenuItem Header="Paths"></MenuItem>
+                <MenuItem Header="Graphs"/>
+                <MenuItem Header="Vertices"/>
+                <MenuItem Header="Branches"/>
+                <MenuItem Header="Paths"/>
             </MenuItem>
-            <MenuItem Header="FAQ">
-            </MenuItem>
-            <MenuItem Header="Help"></MenuItem>
-        </Menu>
-        <Canvas HorizontalAlignment="Stretch" VerticalAlignment="Stretch" Name="MainCanvas">
+            <MenuItem Header="FAQ"/>
 
-        </Canvas>
+            <MenuItem Header="Help"/>
+        </Menu>
+        <Border Grid.Row="2" Grid.Column="1" BorderBrush="Black" BorderThickness="1">
+            <Canvas MouseWheel="MainCanvas_MouseWheel" HorizontalAlignment="Stretch" VerticalAlignment="Stretch" Name="MainCanvas">
+                <Line Name="YAxis" StrokeThickness="2" Stroke="DarkGray" X1="30" X2="30" Y1="0"/>
+                <Line Name="XAxis" StrokeThickness="2" Stroke="DarkGray" X1="30"/>
+                <Grid x:Name="YAxisCoords" HorizontalAlignment="Center" VerticalAlignment="Top" Height="379" Width="25">
+                    <Grid.RowDefinitions>
+                        <RowDefinition Height="*"/>
+                        <RowDefinition Height="*"/>
+                        <RowDefinition Height="*"/>
+                        <RowDefinition Height="*"/>
+                        <RowDefinition Height="*"/>
+                        <RowDefinition Height="*"/>
+                        <RowDefinition Height="*"/>
+                        <RowDefinition Height="*"/>
+                        <RowDefinition Height="*"/>
+                    </Grid.RowDefinitions>
+                    <TextBlock Grid.Row="8" Text="0" VerticalAlignment="Bottom" HorizontalAlignment="Right"/>
+                    <TextBlock Grid.Row="7" Text="50" VerticalAlignment="Bottom" HorizontalAlignment="Right"/>
+                    <TextBlock Grid.Row="6" Text="100" VerticalAlignment="Bottom" HorizontalAlignment="Right"/>
+                    <TextBlock Grid.Row="5" Text="150" VerticalAlignment="Bottom" HorizontalAlignment="Right"/>
+                    <TextBlock Grid.Row="4" Text="200" VerticalAlignment="Bottom" HorizontalAlignment="Right"/>
+                    <TextBlock Grid.Row="3" Text="250" VerticalAlignment="Bottom" HorizontalAlignment="Right"/>
+                    <TextBlock Grid.Row="2" Text="300" VerticalAlignment="Bottom" HorizontalAlignment="Right"/>
+                    <TextBlock Grid.Row="1" Text="350" VerticalAlignment="Bottom" HorizontalAlignment="Right"/>
+                    <TextBlock Grid.Row="0" Text="400" VerticalAlignment="Bottom" HorizontalAlignment="Right"/>
+                </Grid>
+                <Grid x:Name="XAxisCoords" HorizontalAlignment="Left" VerticalAlignment="Center" Width="598" Canvas.Top="364">
+                    <Grid.ColumnDefinitions>
+                        <ColumnDefinition Width="*"/>
+                        <ColumnDefinition Width="*"/>
+                        <ColumnDefinition Width="*"/>
+                        <ColumnDefinition Width="*"/>
+                        <ColumnDefinition Width="*"/>
+                        <ColumnDefinition Width="*"/>
+                        <ColumnDefinition Width="*"/>
+                        <ColumnDefinition Width="*"/>
+                        <ColumnDefinition Width="*"/>
+                    </Grid.ColumnDefinitions>
+                    <TextBlock Grid.Column="0" Text="0" VerticalAlignment="Top" HorizontalAlignment="Left"/>
+                    <TextBlock Grid.Column="1" Text="50" VerticalAlignment="Top" HorizontalAlignment="Left"/>
+                    <TextBlock Grid.Column="2" Text="100" VerticalAlignment="Top" HorizontalAlignment="Left"/>
+                    <TextBlock Grid.Column="3" Text="150" VerticalAlignment="Top" HorizontalAlignment="Left"/>
+                    <TextBlock Grid.Column="4" Text="200" VerticalAlignment="Top" HorizontalAlignment="Left"/>
+                    <TextBlock Grid.Column="5" Text="250" VerticalAlignment="Top" HorizontalAlignment="Left"/>
+                    <TextBlock Grid.Column="6" Text="300" VerticalAlignment="Top" HorizontalAlignment="Left"/>
+                    <TextBlock Grid.Column="7" Text="350" VerticalAlignment="Top" HorizontalAlignment="Left"/>
+                    <TextBlock Grid.Column="8" Text="400" VerticalAlignment="Top" HorizontalAlignment="Left"/>
+                </Grid>
+            </Canvas>
+        </Border>
     </Grid>
 </Window>
