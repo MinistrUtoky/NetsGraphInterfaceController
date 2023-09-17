@@ -20,11 +20,12 @@ namespace InterfaceForGraphCalculations
     /// </summary>
     public partial class MainWindow : Window
     {
-        private List<Point> points = new List<Point>();
+        private List<Ellipse> points = new List<Ellipse>();
         private List<Line> branches = new List<Line>(); 
         public MainWindow()
         {
             InitializeComponent();
+            AddPointToCanvas(50, 50);
         }
 
         private void Window_SizeChanged(object sender, SizeChangedEventArgs e)
@@ -42,6 +43,16 @@ namespace InterfaceForGraphCalculations
         private void MainCanvas_MouseWheel(object sender, MouseWheelEventArgs e)
         {
 
+        }
+        
+        private void AddPointToCanvas(double x, double y)
+        {
+            Ellipse point = new Ellipse();
+            point.Stroke = Brushes.Black;
+            point.StrokeThickness = 20;
+            point.Width = 20; point.Height = 20;
+            Canvas.SetBottom(point, y + 30); Canvas.SetLeft(point, x + 30);
+            MainCanvas.Children.Add(point); 
         }
     }
 }
