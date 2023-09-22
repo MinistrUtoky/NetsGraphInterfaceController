@@ -1,25 +1,13 @@
 ﻿using InterfaceForGraphCalculations.classes;
-using Microsoft.EntityFrameworkCore.Metadata;
-using Microsoft.EntityFrameworkCore.Metadata.Internal;
 using System;
 using System.Collections.Generic;
 using System.Data;
 using System.Linq;
 using System.Text;
-using System.Threading.Tasks;
 using System.Windows;
 using System.Windows.Controls;
 using System.Windows.Controls.Primitives;
-using System.Windows.Data;
-using System.Windows.Documents;
-using System.Windows.Input;
 using System.Windows.Media;
-using System.Windows.Media.Imaging;
-using System.Windows.Navigation;
-using System.Windows.Shapes;
-using System.Xml.Linq;
-using System.Xml.Serialization;
-using static System.Net.Mime.MediaTypeNames;
 
 namespace InterfaceForGraphCalculations
 {
@@ -363,7 +351,7 @@ namespace InterfaceForGraphCalculations
         private void Remove_Button_Click(object sender, RoutedEventArgs e) => Remove_Popup.IsOpen = true;
 
         private void Add_New_Table_Button_Click(object sender, RoutedEventArgs e) => New_Table_subPopup.IsOpen = true;
-        private void Nope_Click(object sender, RoutedEventArgs e) => (sender as Button).Content = "Nope";
+        private void Nope_Click(object sender, RoutedEventArgs e) => (sender as MenuItem).Header = "Nope";
         private void Help_Click(object sender, RoutedEventArgs e) => Jss.IsOpen = true;
         private void Thanks_Click(object sender, RoutedEventArgs e) => Jss.IsOpen = false;
 

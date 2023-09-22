@@ -27,9 +27,11 @@
                 <MenuItem Header="Save"/>
             </MenuItem>
             <MenuItem Header="Edit">
-                <MenuItem Header="Add new element"/>
+                <MenuItem Header="Add new point" Click="AddNewPoint_Click"/>
+                <MenuItem Header="Add new branch" Click="AddNewBranch_Click"/>
                 <MenuItem Header="Modify"/>
-                <MenuItem Header="Remove element"/>
+                <MenuItem Header="Remove point"/>
+                <MenuItem Header="Remove branch"/>
             </MenuItem>
             <MenuItem Header="Calculate">
                 <MenuItem Header="Path"/>
@@ -53,7 +55,7 @@
             <Canvas MouseWheel="MainCanvas_MouseWheel" HorizontalAlignment="Stretch" VerticalAlignment="Stretch" Name="MainCanvas">
                 <Line Name="YAxis" StrokeThickness="2" Stroke="DarkGray" X1="30" X2="30" Y1="0"/>
                 <Line Name="XAxis" StrokeThickness="2" Stroke="DarkGray" X1="30"/>
-                <Grid x:Name="YAxisCoords" HorizontalAlignment="Center" VerticalAlignment="Top" Height="379" Width="25">
+                <Grid x:Name="YAxisCoords" HorizontalAlignment="Center" VerticalAlignment="Top">
                     <Grid.RowDefinitions>
                         <RowDefinition Height="*"/>
                         <RowDefinition Height="*"/>
@@ -72,11 +74,12 @@
                     <TextBlock Grid.Row="4" Text="200" VerticalAlignment="Bottom" HorizontalAlignment="Right"/>
                     <TextBlock Grid.Row="3" Text="250" VerticalAlignment="Bottom" HorizontalAlignment="Right"/>
                     <TextBlock Grid.Row="2" Text="300" VerticalAlignment="Bottom" HorizontalAlignment="Right"/>
-                    <TextBlock Grid.Row="1" Text="350" VerticalAlignment="Bottom" HorizontalAlignment="Right"/>
-                    <TextBlock Grid.Row="0" Text="400" VerticalAlignment="Bottom" HorizontalAlignment="Right"/>
                 </Grid>
-                <Grid x:Name="XAxisCoords" HorizontalAlignment="Left" VerticalAlignment="Center" Width="598" Canvas.Top="364">
+                <Grid x:Name="XAxisCoords" HorizontalAlignment="Left" VerticalAlignment="Center">
                     <Grid.ColumnDefinitions>
+                        <ColumnDefinition Width="*"/>
+                        <ColumnDefinition Width="*"/>
+                        <ColumnDefinition Width="*"/>
                         <ColumnDefinition Width="*"/>
                         <ColumnDefinition Width="*"/>
                         <ColumnDefinition Width="*"/>
@@ -96,8 +99,55 @@
                     <TextBlock Grid.Column="6" Text="300" VerticalAlignment="Top" HorizontalAlignment="Left"/>
                     <TextBlock Grid.Column="7" Text="350" VerticalAlignment="Top" HorizontalAlignment="Left"/>
                     <TextBlock Grid.Column="8" Text="400" VerticalAlignment="Top" HorizontalAlignment="Left"/>
+                    <TextBlock Grid.Column="9" Text="450" VerticalAlignment="Top" HorizontalAlignment="Left"/>
+                    <TextBlock Grid.Column="10" Text="500" VerticalAlignment="Top" HorizontalAlignment="Left"/>
+                    <TextBlock Grid.Column="11" Text="550" VerticalAlignment="Top" HorizontalAlignment="Left"/>
                 </Grid>
             </Canvas>
         </Border>
+        <Popup Placement="Center" x:Name="AddPointPopup" IsOpen="False" StaysOpen="False">
+            <Border BorderBrush="Black" BorderThickness="1">
+                <Grid Background="White">
+                    <Grid.ColumnDefinitions>
+                        <ColumnDefinition Width="1*"/>
+                        <ColumnDefinition Width="3*"/>
+                        <ColumnDefinition Width="1*"/>
+                        <ColumnDefinition Width="3*"/>
+                    </Grid.ColumnDefinitions>
+                    <Grid.RowDefinitions>
+                        <RowDefinition Height="1*"/>
+                        <RowDefinition Height="1*"/>
+                        <RowDefinition Height="1*"/>
+                        <RowDefinition Height="1*"/>
+                    </Grid.RowDefinitions>
+                    <TextBlock Grid.Row="1" Text="X"/>
+                    <TextBlock Grid.Row="1" Grid.Column="2" Text="Y"/>
+                    <TextBox Width="50" Name="PointPopupX"  Grid.Row="1" Grid.Column="1"/>
+                    <TextBox Width="50" Name="PointPopupY" Grid.Row="1" Grid.Column="3"/>
+                    <Button Grid.Row="3" Grid.ColumnSpan="3" Content="Add point" Click="AddNewPointButton_Click"/>
+                </Grid>
+            </Border>
+        </Popup>
+        <Popup Placement="Center" x:Name="AddBranchPopup" IsOpen="False" StaysOpen="False">
+            <Border BorderBrush="Black" BorderThickness="1">
+                <Grid Background="White">               
+                    <Grid.ColumnDefinitions>
+                        <ColumnDefinition Width="1*"/>
+                        <ColumnDefinition Width="3*"/>
+                    </Grid.ColumnDefinitions>
+                    <Grid.RowDefinitions>
+                        <RowDefinition Height="1*"/>
+                        <RowDefinition Height="1*"/>
+                        <RowDefinition Height="1*"/>
+                        <RowDefinition Height="1*"/>
+                        <RowDefinition Height="1*"/>
+                        <RowDefinition Height="1*"/>
+                    </Grid.RowDefinitions>
+                    <ComboBox Name="FirstBranchPointComboBox" Grid.Row="1" Grid.Column="1"/>
+                    <ComboBox Grid.Row="3" Grid.Column="1"/>
+                    <Button Grid.Row="5" Grid.ColumnSpan="3" Content="Add branch"/>
+                </Grid>
+            </Border>
+        </Popup>
     </Grid>
 </Window>
