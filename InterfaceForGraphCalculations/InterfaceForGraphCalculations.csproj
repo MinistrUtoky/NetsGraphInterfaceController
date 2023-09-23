@@ -23,6 +23,10 @@
   </ItemGroup>
 
   <ItemGroup>
+    <Compile Remove="classes\DraggablePopup.cs" />
+  </ItemGroup>
+
+  <ItemGroup>
     <None Remove="pictures\js.jpg" />
   </ItemGroup>
 
