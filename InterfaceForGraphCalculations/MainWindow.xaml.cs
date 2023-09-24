@@ -192,6 +192,7 @@ namespace InterfaceForGraphCalculations
         {
             FirstBranchPointComboBox.Items.Clear();
             SecondBranchPointComboBox.Items.Clear();
+            selectedPointUnconnectedIndices.Clear();
             for (int i = 0; i < points.Count; i++)
             {
                 FirstBranchPointComboBox.Items.Add("Point " + (i + 1) + "(" + (Canvas.GetLeft(points[i].VisualPoint) + POINT_RADIUS - coordinatesCenter[0]) + ", " + (Canvas.GetBottom(points[i].VisualPoint) + POINT_RADIUS - coordinatesCenter[1]) + ")");              
@@ -294,6 +295,18 @@ namespace InterfaceForGraphCalculations
         {
             if (BranchToRemoveComboBox.SelectedItem != null)
             {
+                GraphBranch branch = branches[BranchToRemoveComboBox.SelectedIndex];
+                foreach (GraphPoint point in points)
+                {
+                    point.ConnectedBranches.Remove(branch);
+                    if (point.ConnectedPoints.Contains(branch.VisualPoint1))
+                        point.ConnectedPoints.Remove(branch.VisualPoint1);
+                    else if (point.ConnectedPoints.Contains(branch.VisualPoint2))
+                        point.ConnectedPoints.Remove(branch.VisualPoint2);
+                }
+                branches.Remove(branch);
+                MainCanvas.Children.Remove(branch.VisualBranch);
+                RenewBranchRemovalComboBox();
             }
             else
                 MessageBox.Show("Error: No branch selected", "Error", MessageBoxButton.OK, MessageBoxImage.Error);
