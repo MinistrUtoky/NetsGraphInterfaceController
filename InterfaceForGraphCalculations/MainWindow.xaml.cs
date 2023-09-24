@@ -1,4 +1,5 @@
-﻿using System;
+﻿using Microsoft.EntityFrameworkCore.Metadata.Internal;
+using System;
 using System.Collections.Generic;
 using System.Collections.Specialized;
 using System.Diagnostics;
@@ -212,15 +213,33 @@ namespace InterfaceForGraphCalculations
         private void FirstBranchPointComboBox_SelectionChanged(object sender, SelectionChangedEventArgs e) => RenewSecondBranchPointComboBox();
         private void RenewSecondBranchPointComboBox()
         {
+            for (int index = 0; index < points.Count; index++)
+                if (index != SecondBranchPointComboBox.SelectedIndex)
+                    points[index].VisualPoint.Stroke = Brushes.Black;
             if (FirstBranchPointComboBox.SelectedItem != null) {
                 selectedPointUnconnectedIndices.Clear();
-                for (int index = 0; index < points.Count; index++)
-                    if (index != FirstBranchPointComboBox.SelectedIndex && !points[FirstBranchPointComboBox.SelectedIndex].ConnectedPoints.Contains(points[index]))
-                        selectedPointUnconnectedIndices.Add(index);
+                for (int index = 0; index < points.Count; index++) {
+                    if (index != FirstBranchPointComboBox.SelectedIndex) {
+                        if (!points[FirstBranchPointComboBox.SelectedIndex].ConnectedPoints.Contains(points[index]))
+                            selectedPointUnconnectedIndices.Add(index);
+                    } 
+                }
 
                 SecondBranchPointComboBox.Items.Clear();
                 foreach (int index in selectedPointUnconnectedIndices)
                     SecondBranchPointComboBox.Items.Add(FirstBranchPointComboBox.Items[index]);
+
+                points[FirstBranchPointComboBox.SelectedIndex].VisualPoint.Stroke = Brushes.Cyan;
+            }
+        }
+        private void SecondPointComboBox_SelectionChanged(object sender, SelectionChangedEventArgs e)
+        {
+            for (int index = 0; index < points.Count; index++)
+                if (index != FirstBranchPointComboBox.SelectedIndex)
+                    points[index].VisualPoint.Stroke = Brushes.Black;
+            if (SecondBranchPointComboBox.SelectedItem != null)
+            {
+                points[selectedPointUnconnectedIndices[SecondBranchPointComboBox.SelectedIndex]].VisualPoint.Stroke = Brushes.Cyan;
             }
         }
         private void AddNewBranchButton_Click(object sender, RoutedEventArgs e)
@@ -340,6 +359,14 @@ namespace InterfaceForGraphCalculations
             p.StartInfo.UseShellExecute = true;
             p.StartInfo.FileName = "https://en.wikipedia.org/wiki/Graph_theory";
             p.Start();
+        }
+
+        private void AddBranchPopup_Closed(object sender, EventArgs e) => BlackenThePoints();
+
+        private void BlackenThePoints()
+        {
+            for (int index = 0; index < points.Count; index++)
+                points[index].VisualPoint.Stroke = Brushes.Black;
         }
     }
 }

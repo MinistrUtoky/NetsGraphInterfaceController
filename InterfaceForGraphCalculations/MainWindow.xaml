@@ -84,7 +84,7 @@
                 </Grid>
             </Border>
         </Popup>
-        <Popup Placement="Center" x:Name="AddBranchPopup" IsOpen="False" StaysOpen="False" MinWidth="100" MinHeight="100">
+        <Popup Placement="Center" x:Name="AddBranchPopup" Closed="AddBranchPopup_Closed" IsOpen="False" StaysOpen="False" MinWidth="100" MinHeight="100">
             <Border BorderBrush="Black" BorderThickness="1">
                 <Grid Background="White">
                     <Grid.RowDefinitions>
@@ -96,7 +96,7 @@
                         <RowDefinition Height="1*"/>
                     </Grid.RowDefinitions>
                     <ComboBox Name="FirstBranchPointComboBox" SelectionChanged="FirstBranchPointComboBox_SelectionChanged" Grid.Row="1"/>
-                    <ComboBox Name="SecondBranchPointComboBox" Grid.Row="3"/>
+                    <ComboBox Name="SecondBranchPointComboBox" Grid.Row="3" SelectionChanged="SecondPointComboBox_SelectionChanged"/>
                     <Button Grid.Row="5" Grid.ColumnSpan="2" Content="Add branch" Click="AddNewBranchButton_Click"/>
                 </Grid>
             </Border>
