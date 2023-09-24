@@ -47,12 +47,11 @@
                 <MenuItem Header="Branches"/>
                 <MenuItem Header="Paths"/>
             </MenuItem>
-            <MenuItem Header="FAQ"/>
-
+            <MenuItem Header="FAQ" Click="FAQ_Click"/>
             <MenuItem Header="Help"/>
         </Menu>
         <Border Grid.Row="2" Grid.Column="1" BorderBrush="Black" BorderThickness="1">
-            <Canvas MouseWheel="MainCanvas_MouseWheel" HorizontalAlignment="Stretch" VerticalAlignment="Stretch" Name="MainCanvas">
+            <Canvas MouseWheel="MainCanvas_MouseWheel" HorizontalAlignment="Stretch" VerticalAlignment="Stretch" Name="MainCanvas" ClipToBounds="True">
                 <Line Name="YAxis" StrokeThickness="2" Stroke="DarkGray" X1="30" X2="30" Y1="0"/>
                 <Line Name="XAxis" StrokeThickness="2" Stroke="DarkGray" X1="30"/>
             </Canvas>
