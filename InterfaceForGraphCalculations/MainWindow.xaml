@@ -23,13 +23,13 @@
         <Menu Height="20" VerticalAlignment="Top" Grid.ColumnSpan="10">
             <MenuItem Header="File">
                 <MenuItem Header="New graph"/>
-                <MenuItem Header="Import from..">
-                    <MenuItem Header="Database"/>
-                    <MenuItem Header="CSV"/>
-                </MenuItem>
                 <MenuItem Header="Export to..">
                     <MenuItem Header="Database" Click="SaveToDatabase_Click"/>
                     <MenuItem Header="CSV" Click="SaveToCSV_Click"/>
+                </MenuItem>
+                <MenuItem Header="Import from..">
+                    <MenuItem Header="Database"/>
+                    <MenuItem Header="CSV"/>
                 </MenuItem>
             </MenuItem>
             <MenuItem Header="Edit">
@@ -44,8 +44,8 @@
                 <MenuItem Header="Paths"/>
             </MenuItem>
             <MenuItem Header="View">
-                <MenuItem Header="Canvas properties"/>
-                <MenuItem Header="Graph properties"/>
+                <MenuItem Header="Canvas properties" IsCheckable="True"/>
+                <MenuItem Header="Graph properties" IsCheckable="True"/>
             </MenuItem>
             <MenuItem Header="Database">
                 <MenuItem Header="Graphs" Click="GraphsDB_Click"/>
@@ -57,7 +57,7 @@
             <MenuItem Header="Help"/>
         </Menu>
         <Border Grid.Row="2" Grid.Column="1" BorderBrush="Black" BorderThickness="1">
-            <Canvas MouseWheel="MainCanvas_MouseWheel" HorizontalAlignment="Stretch" VerticalAlignment="Stretch" Name="MainCanvas" ClipToBounds="True">
+            <Canvas HorizontalAlignment="Stretch" VerticalAlignment="Stretch" Name="MainCanvas" ClipToBounds="True">
                 <Line Name="YAxis" StrokeThickness="2" Stroke="DarkGray" X1="30" X2="30" Y1="0"/>
                 <Line Name="XAxis" StrokeThickness="2" Stroke="DarkGray" X1="30"/>
             </Canvas>
@@ -132,6 +132,24 @@
                     </Grid.RowDefinitions>
                     <ComboBox Name="BranchToRemoveComboBox" Grid.Row="1"/>
                     <Button Grid.Row="3 " Grid.ColumnSpan="2" Content="Remove branch" Click="RemoveBranchButton_Click"/>
+                </Grid>
+            </Border>
+        </Popup>
+        <Popup Placement="Center" Name="SaveToDBPopup" IsOpen="False" StaysOpen="False" MinWidth="100" MinHeight="100">
+            <Border BorderBrush="Black" BorderThickness="1">
+                <Grid Background="White">
+                    <Grid.RowDefinitions>
+                        <RowDefinition Height="1*"/>
+                        <RowDefinition Height="1*"/>
+                        <RowDefinition Height="1*"/>
+                        <RowDefinition Height="1*"/>
+                        <RowDefinition Height="1*"/>
+                    </Grid.RowDefinitions>
+                    <TextBlock Grid.Row="0" Text="Graph Name:"/>
+                    <TextBlock Grid.Row="2" Text="Graph description"/>
+                    <TextBox Grid.Row="1" MaxLength="40" Name="GraphName"/>
+                    <TextBox Grid.Row="3" MaxWidth="100" Name="GraphDescription" TextWrapping="Wrap"/>
+                    <Button Grid.Row="4" Grid.ColumnSpan="2" Content="Save" Click="SaveToDBButton_Click"/>
                 </Grid>
             </Border>
         </Popup>

@@ -3,6 +3,7 @@ using Microsoft.EntityFrameworkCore.Metadata.Internal;
 using System;
 using System.Collections.Generic;
 using System.Collections.Specialized;
+using System.Data;
 using System.Diagnostics;
 using System.Drawing;
 using System.Text;
@@ -68,12 +69,16 @@ namespace InterfaceForGraphCalculations
         public MainWindow()
         {
             InitializeComponent();
-            //DBClass.Execute_SQL("ALTER TABLE [dbo].[VISUAL_POINTS] DROP COLUMN Branch_Id;");
-            //DBClass.Execute_SQL("ALTER TABLE VISUAL_POINTS ADD Connected_Branch_Ids TEXT");
+            DBClass.Execute_SQL("DELETE FROM VISUAL_BRANCHES;");
+            DBClass.Execute_SQL("DELETE FROM VISUAL_POINTS;");
+            DBClass.Execute_SQL("DELETE FROM VISUAL_GRAPHS;");
+            //DBClass.Execute_SQL("CREATE TABLE [dbo].[VISUAL_GRAPHS] ( GRAPH_ID INT PRIMARY KEY IDENTITY NOT NULL, Name VARCHAR(45) NOT NULL, Description TEXT, Points TEXT, Branches TEXT);");
+            //DBClass.Execute_SQL("CREATE TABLE [dbo].[VISUAL_POINTS] ( POINT_ID INT PRIMARY KEY IDENTITY NOT NULL, X INT NOT NULL, Y INT NOT NULL, Connected_Branch_Ids TEXT);");
+            //DBClass.Execute_SQL("ALTER TABLE [dbo].[VISUAL_POINTS] ADD Graph_Id INTEGER, FOREIGN KEY(Graph_Id) REFERENCES VISUAL_GRAPHS(GRAPH_ID);");
+            //DBClass.Execute_SQL("CREATE TABLE [dbo].[VISUAL_BRANCHES] ( BRANCH_ID INT PRIMARY KEY IDENTITY NOT NULL );");
+            //DBClass.Execute_SQL("ALTER TABLE [dbo].[VISUAL_BRANCHES] ADD Point1_Id INTEGER, FOREIGN KEY(Point1_Id) REFERENCES VISUAL_POINTS(POINT_ID);");
+            //DBClass.Execute_SQL("ALTER TABLE [dbo].[VISUAL_BRANCHES] ADD Point2_Id INTEGER, FOREIGN KEY(Point2_Id) REFERENCES VISUAL_POINTS(POINT_ID);");
             //DBClass.Execute_SQL("ALTER TABLE [dbo].[VISUAL_BRANCHES] ADD Graph_Id INTEGER, FOREIGN KEY(Graph_Id) REFERENCES VISUAL_GRAPHS(GRAPH_ID);");
-            //DBClass.Execute_SQL("ALTER TABLE [dbo].[VISUAL_POINTS] ADD connected_branch_ids TEXT NULL, connected_point_ids TEXT NULL;");
-            //DBClass.Execute_SQL("ALTER TABLE VISUAL_POINTS DROP COLUMN connected_point_ids;");
-            //DBClass.Execute_SQL("CREATE TABLE [dbo].[VISUAL_GRAPHS] ( GRAPH_ID INT PRIMARY KEY NOT NULL, Name VARCHAR(45) NOT NULL, Description TEXT, Points TEXT, Branches TEXT);");
             foreach (UIElement uiElement in MainCanvas.Children)
             {
                 uiElement.ClipToBounds = true;
@@ -127,6 +132,7 @@ namespace InterfaceForGraphCalculations
             }
         }
 
+        /*
         private void MainCanvas_MouseWheel(object sender, MouseWheelEventArgs e)
         {
             if (e.Delta > 0)
@@ -145,7 +151,7 @@ namespace InterfaceForGraphCalculations
                 shape.Width = shape.ActualWidth * scale;
                 shape.Height = shape.ActualHeight * scale;
             }
-        }
+        }*/
 
         private void AddPointToCanvas(double x, double y)
         {
@@ -340,7 +346,6 @@ namespace InterfaceForGraphCalculations
                 MessageBox.Show("Error: No branch selected", "Error", MessageBoxButton.OK, MessageBoxImage.Error);
         }
 
-
         /*
         private void MainCanvas_MouseLeftButtonDown(object sender, MouseButtonEventArgs e)
         {
@@ -361,6 +366,7 @@ namespace InterfaceForGraphCalculations
             }
         }
          */
+        
         private void FAQ_Click(object sender, RoutedEventArgs e)
         {
             Process p = new Process();
@@ -383,6 +389,7 @@ namespace InterfaceForGraphCalculations
             dataWindow = new DataWindow();
             dataWindow.Closed += (sender, args) => dataWindow = null;
             dataWindow.Show();
+            dataWindow.SwitchTable("VISUAL_GRAPHS");
         }
         private void VerticesDB_Click(object sender, RoutedEventArgs e)
         {
@@ -408,14 +415,104 @@ namespace InterfaceForGraphCalculations
             dataWindow.Show();
         }
 
-        private void SaveToDatabase_Click(object sender, RoutedEventArgs e)
-        {
-
-        }
+        private void SaveToDatabase_Click(object sender, RoutedEventArgs e) => SaveToDBPopup.IsOpen = true;
 
         private void SaveToCSV_Click(object sender, RoutedEventArgs e)
         {
+            
+        }
 
+        private void SaveToDBButton_Click(object sender, RoutedEventArgs e)
+        {
+            List<string> elem = new List<string>();
+            elem.Add(GraphName.Text);
+            elem.Add(GraphDescription.Text);
+            elem.Add("");
+            elem.Add("");
+            DBClass.DB_Add_Record("VISUAL_GRAPHS", elem);
+
+            DataTable maxGraphId = DBClass.Get_DataTable("SELECT MAX(GRAPH_ID) FROM VISUAL_GRAPHS;");
+            int graphId = Int32.Parse(maxGraphId.Rows[0].ItemArray[0].ToString());
+
+            foreach (GraphPoint point in points) {
+                elem.Clear();
+                elem.Add((Canvas.GetLeft(point.VisualPoint) + POINT_RADIUS - coordinatesCenter[0]).ToString());
+                elem.Add((Canvas.GetBottom(point.VisualPoint) + POINT_RADIUS - coordinatesCenter[1]).ToString());
+                elem.Add("");
+                elem.Add(graphId.ToString()); 
+                
+                DBClass.DB_Add_Record("VISUAL_POINTS", elem);
+            }
+
+
+            DataTable maxPointId = DBClass.Get_DataTable("SELECT MAX(POINT_ID) FROM VISUAL_POINTS;");
+            int pointId = Int32.Parse(maxPointId.Rows[0].ItemArray[0].ToString());
+            int i = 0; StringBuilder pointsSb = new StringBuilder();
+
+            Dictionary<GraphBranch, string[]> bs = new Dictionary<GraphBranch, string[]>();
+            foreach (GraphPoint point in points)
+            {
+                foreach (GraphBranch b in point.ConnectedBranches)
+                {
+                    if (bs.ContainsKey(b))
+                        bs[b][1] = (pointId - i).ToString();
+                    else
+                    {
+                        bs[b] = new string[2];
+                        bs[b][0] = (pointId - i).ToString();
+                    }
+                }
+                pointsSb.Append((pointId - i).ToString() + ";");
+                i++;
+            }
+            
+            foreach (GraphBranch b in branches)
+            {
+                elem.Clear();
+                elem.Add(bs[b][0]);
+                elem.Add(bs[b][1]);
+                elem.Add(graphId.ToString());
+                DBClass.DB_Add_Record("VISUAL_BRANCHES", elem);
+            }
+
+            DataTable maxBranchId = DBClass.Get_DataTable("SELECT MAX(BRANCH_ID) FROM VISUAL_BRANCHES;");
+            int branchId = Int32.Parse(maxBranchId.Rows[0].ItemArray[0].ToString());
+            i = 0; StringBuilder branchesSb = new StringBuilder();
+
+            Dictionary<GraphPoint, string> pointsConnectedBranchIDs = new Dictionary<GraphPoint, string>();
+            foreach (GraphBranch b in branches) {
+                StringBuilder connectedBranchIDs = new StringBuilder();
+                foreach (GraphPoint p in points)
+                {
+                    if (b.VisualPoint1 == p || b.VisualPoint2 == p)
+                    {
+                        if (pointsConnectedBranchIDs.ContainsKey(p))
+                            pointsConnectedBranchIDs[p] += (branchId - i).ToString() + ";";
+                        else pointsConnectedBranchIDs[p] = (branchId - i).ToString() + ";";
+                    }
+                }
+
+                branchesSb.Append((branchId - i).ToString() + ";");
+                i++;
+            }
+
+            DataTable graphByMaxID = DBClass.Get_DataTable("SELECT * FROM VISUAL_GRAPHS WHERE [GRAPH_ID] = '" + graphId + "'");
+            DBClass.DB_Update_Record("VISUAL_GRAPHS", new List<string>() { graphId.ToString(), graphByMaxID.Rows[0].ItemArray[1].ToString(),
+                                                                            graphByMaxID.Rows[0].ItemArray[2].ToString(), pointsSb.ToString(), branchesSb.ToString() });
+
+            StringBuilder sb = new StringBuilder();
+            int id = pointId - points.Count + 1; 
+            foreach (GraphPoint p in points)
+            {
+                DataTable pointByID = DBClass.Get_DataTable("SELECT * FROM VISUAL_POINTS WHERE [POINT_ID] = '" + id + "'");
+                DBClass.DB_Update_Record("VISUAL_POINTS", new List<string>() { id.ToString(), pointByID.Rows[0].ItemArray[1].ToString(),
+                                                                            pointByID.Rows[0].ItemArray[2].ToString(), pointsConnectedBranchIDs[p], pointByID.Rows[0].ItemArray[4].ToString() });
+                if (pointsConnectedBranchIDs.ContainsKey(p))
+                    sb.Append(id + ": " + pointsConnectedBranchIDs[p] + "\n");
+                else
+                    sb.Append(id + ": " + "\n");
+                id++;
+            }
         }
     }
 }

@@ -69,5 +69,51 @@ namespace InterfaceForGraphCalculations.classes
             SqlConnection cn_connection = new SqlConnection(cn_String);
             if (cn_connection.State != ConnectionState.Closed) cn_connection.Close();
         }
+
+        public static void DB_Add_Record(string tableName, List<string> new_element)
+        {
+            DataTable dt = Get_DataTable("SELECT * FROM " + tableName + ";");
+            List<string> columnNames = new List<string>();
+            foreach (DataColumn dc in dt.Columns)
+                columnNames.Add(dc.ColumnName);
+
+            StringBuilder fields = new StringBuilder();
+
+            for (int i = 1; i < columnNames.Count; i++)
+            {
+                fields.Append("[");
+                fields.Append(columnNames[i]);
+                fields.Append("]");
+                if (i != columnNames.Count - 1) fields.Append(",");
+            }            
+
+            StringBuilder values = new StringBuilder();
+            for (int i = 0; i < new_element.Count; i++)
+            {
+                values.Append("'"); values.Append(new_element[i]); values.Append("'");
+                if (i != new_element.Count - 1) values.Append(",");
+            }
+            string sql_Add = "INSERT INTO " + tableName + " (" + fields + ") VALUES(" + values + ")";
+            Execute_SQL(sql_Add);
+        }
+
+
+        public static void DB_Update_Record(string tableName, List<string> element_to_update)
+        {
+            DataTable dt = Get_DataTable("SELECT * FROM " + tableName + ";");
+            List<string> columnNames = new List<string>();
+            foreach (DataColumn dc in dt.Columns)
+                columnNames.Add(dc.ColumnName);
+            string sSQL = "SELECT * FROM " + tableName + " WHERE [" + columnNames[0] + "] = '" + element_to_update[0] + "'";
+            DataTable tbl = DBClass.Get_DataTable(sSQL);
+            if (tbl.Rows.Count > 0)
+            {
+                for (int i = 1; i < element_to_update.Count; i++)
+                {
+                    string sql_Update = "UPDATE " + tableName + " SET [" + columnNames[i] + "] = '" + element_to_update[i] + "' WHERE [" + columnNames[0] + "] = '" + element_to_update[0] + "'";
+                    DBClass.Execute_SQL(sql_Update);
+                }
+            }
+        }
     }
 }
