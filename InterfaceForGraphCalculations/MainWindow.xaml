@@ -23,8 +23,14 @@
         <Menu Height="20" VerticalAlignment="Top" Grid.ColumnSpan="10">
             <MenuItem Header="File">
                 <MenuItem Header="New graph"/>
-                <MenuItem Header="Open graph"/>
-                <MenuItem Header="Save"/>
+                <MenuItem Header="Import from..">
+                    <MenuItem Header="Database"/>
+                    <MenuItem Header="CSV"/>
+                </MenuItem>
+                <MenuItem Header="Export to..">
+                    <MenuItem Header="Database" Click="SaveToDatabase_Click"/>
+                    <MenuItem Header="CSV" Click="SaveToCSV_Click"/>
+                </MenuItem>
             </MenuItem>
             <MenuItem Header="Edit">
                 <MenuItem Header="Add new point" Click="AddNewPoint_Click"/>
@@ -42,10 +48,10 @@
                 <MenuItem Header="Graph properties"/>
             </MenuItem>
             <MenuItem Header="Database">
-                <MenuItem Header="Graphs"/>
-                <MenuItem Header="Vertices"/>
-                <MenuItem Header="Branches"/>
-                <MenuItem Header="Paths"/>
+                <MenuItem Header="Graphs" Click="GraphsDB_Click"/>
+                <MenuItem Header="Vertices" Click="VerticesDB_Click"/>
+                <MenuItem Header="Branches" Click="BranchesDB_Click"/>
+                <MenuItem Header="Paths" Click="PathsDB_Click"/>
             </MenuItem>
             <MenuItem Header="FAQ" Click="FAQ_Click"/>
             <MenuItem Header="Help"/>

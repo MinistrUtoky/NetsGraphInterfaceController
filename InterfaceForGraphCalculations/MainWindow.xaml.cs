@@ -1,4 +1,5 @@
-﻿using Microsoft.EntityFrameworkCore.Metadata.Internal;
+﻿using InterfaceForGraphCalculations.classes;
+using Microsoft.EntityFrameworkCore.Metadata.Internal;
 using System;
 using System.Collections.Generic;
 using System.Collections.Specialized;
@@ -19,6 +20,8 @@ namespace InterfaceForGraphCalculations
     /// </summary>
     public partial class MainWindow : Window
     {
+        private DataWindow dataWindow;
+
         private const double POINT_RADIUS = 5;
         private const double GRADUATION_SCALE_UNIT = 50;
         private bool windowStarted = false;
@@ -58,15 +61,19 @@ namespace InterfaceForGraphCalculations
             public GraphPoint VisualPoint2 => visualPoint2;
             public GraphBranch(Line visualBranch, GraphPoint visualPoint1, GraphPoint visualPoint2)
             {
-                this.visualBranch = visualBranch;this.visualPoint1 = visualPoint1;this.visualPoint2 = visualPoint2;
+                this.visualBranch = visualBranch; this.visualPoint1 = visualPoint1; this.visualPoint2 = visualPoint2;
             }
         }
-        
+
         public MainWindow()
         {
             InitializeComponent();
-            //DataWindow dataWindow = new DataWindow();
-            //dataWindow.Show();
+            //DBClass.Execute_SQL("ALTER TABLE [dbo].[VISUAL_POINTS] DROP COLUMN Branch_Id;");
+            //DBClass.Execute_SQL("ALTER TABLE VISUAL_POINTS ADD Connected_Branch_Ids TEXT");
+            //DBClass.Execute_SQL("ALTER TABLE [dbo].[VISUAL_BRANCHES] ADD Graph_Id INTEGER, FOREIGN KEY(Graph_Id) REFERENCES VISUAL_GRAPHS(GRAPH_ID);");
+            //DBClass.Execute_SQL("ALTER TABLE [dbo].[VISUAL_POINTS] ADD connected_branch_ids TEXT NULL, connected_point_ids TEXT NULL;");
+            //DBClass.Execute_SQL("ALTER TABLE VISUAL_POINTS DROP COLUMN connected_point_ids;");
+            //DBClass.Execute_SQL("CREATE TABLE [dbo].[VISUAL_GRAPHS] ( GRAPH_ID INT PRIMARY KEY NOT NULL, Name VARCHAR(45) NOT NULL, Description TEXT, Points TEXT, Branches TEXT);");
             foreach (UIElement uiElement in MainCanvas.Children)
             {
                 uiElement.ClipToBounds = true;
@@ -96,9 +103,9 @@ namespace InterfaceForGraphCalculations
             {
                 graduationMarks.Add(AddTextToCanvas(coordinatesCenter[0] - 30,
                                                     coordinatesCenter[1] + i * GRADUATION_SCALE_UNIT, (i * GRADUATION_SCALE_UNIT).ToString()));
-                graduation.Add(AddLineToCanvas(coordinatesCenter[0] - 3, 
-                                                coordinatesCenter[1] + i * GRADUATION_SCALE_UNIT, 
-                                                coordinatesCenter[0] + 3, 
+                graduation.Add(AddLineToCanvas(coordinatesCenter[0] - 3,
+                                                coordinatesCenter[1] + i * GRADUATION_SCALE_UNIT,
+                                                coordinatesCenter[0] + 3,
                                                 coordinatesCenter[1] + i * GRADUATION_SCALE_UNIT, Brushes.DarkGray));
             }
             for (int i = 1; i < Math.Floor(MainCanvas.ActualWidth / GRADUATION_SCALE_UNIT); i++)
@@ -115,7 +122,7 @@ namespace InterfaceForGraphCalculations
         }
         private void RedrawGraph(SizeChangedEventArgs e)
         {
-            foreach (var branch in branches) { 
+            foreach (var branch in branches) {
                 MoveLineOnCanvas(branch.VisualBranch, branch.VisualPoint1.VisualPoint, branch.VisualPoint2.VisualPoint);
             }
         }
@@ -145,10 +152,10 @@ namespace InterfaceForGraphCalculations
             Ellipse point = new Ellipse();
             point.ClipToBounds = true;
             point.Stroke = Brushes.Black;
-            point.StrokeThickness = POINT_RADIUS*2;
-            point.Width = POINT_RADIUS*2; point.Height = POINT_RADIUS*2;
+            point.StrokeThickness = POINT_RADIUS * 2;
+            point.Width = POINT_RADIUS * 2; point.Height = POINT_RADIUS * 2;
             Canvas.SetBottom(point, y + coordinatesCenter[1] - POINT_RADIUS); Canvas.SetLeft(point, x + coordinatesCenter[0] - POINT_RADIUS);
-            MainCanvas.Children.Add(point); 
+            MainCanvas.Children.Add(point);
             points.Add(new GraphPoint(point, new List<GraphBranch>(), new List<GraphPoint>()));
         }
         private void AddBranchToCanvas(GraphPoint point1, GraphPoint point2)
@@ -171,7 +178,7 @@ namespace InterfaceForGraphCalculations
         }
         private TextBlock AddTextToCanvas(double x, double y, string text)
         {
-            TextBlock graduationMark = new TextBlock(); graduationMark.Text = text; 
+            TextBlock graduationMark = new TextBlock(); graduationMark.Text = text;
             Canvas.SetLeft(graduationMark, x); Canvas.SetBottom(graduationMark, y);
             graduationMark.ClipToBounds = true;
             MainCanvas.Children.Add(graduationMark);
@@ -196,7 +203,7 @@ namespace InterfaceForGraphCalculations
             selectedPointUnconnectedIndices.Clear();
             for (int i = 0; i < points.Count; i++)
             {
-                FirstBranchPointComboBox.Items.Add("Point " + (i + 1) + "(" + (Canvas.GetLeft(points[i].VisualPoint) + POINT_RADIUS - coordinatesCenter[0]) + ", " + (Canvas.GetBottom(points[i].VisualPoint) + POINT_RADIUS - coordinatesCenter[1]) + ")");              
+                FirstBranchPointComboBox.Items.Add("Point " + (i + 1) + "(" + (Canvas.GetLeft(points[i].VisualPoint) + POINT_RADIUS - coordinatesCenter[0]) + ", " + (Canvas.GetBottom(points[i].VisualPoint) + POINT_RADIUS - coordinatesCenter[1]) + ")");
             }
             AddBranchPopup.IsOpen = true;
         }
@@ -216,13 +223,14 @@ namespace InterfaceForGraphCalculations
             for (int index = 0; index < points.Count; index++)
                 if (index != SecondBranchPointComboBox.SelectedIndex)
                     points[index].VisualPoint.Stroke = Brushes.Black;
-            if (FirstBranchPointComboBox.SelectedItem != null) {
+            if (FirstBranchPointComboBox.SelectedItem != null)
+            {
                 selectedPointUnconnectedIndices.Clear();
                 for (int index = 0; index < points.Count; index++) {
                     if (index != FirstBranchPointComboBox.SelectedIndex) {
                         if (!points[FirstBranchPointComboBox.SelectedIndex].ConnectedPoints.Contains(points[index]))
                             selectedPointUnconnectedIndices.Add(index);
-                    } 
+                    }
                 }
 
                 SecondBranchPointComboBox.Items.Clear();
@@ -244,7 +252,7 @@ namespace InterfaceForGraphCalculations
         }
         private void AddNewBranchButton_Click(object sender, RoutedEventArgs e)
         {
-            if (FirstBranchPointComboBox.SelectedItem!=null & SecondBranchPointComboBox.SelectedItem != null) { 
+            if (FirstBranchPointComboBox.SelectedItem != null & SecondBranchPointComboBox.SelectedItem != null) {
                 GraphPoint point1 = points[FirstBranchPointComboBox.SelectedIndex];
                 int trueIndex = selectedPointUnconnectedIndices[SecondBranchPointComboBox.SelectedIndex];
                 GraphPoint point2 = points[trueIndex];
@@ -252,6 +260,7 @@ namespace InterfaceForGraphCalculations
                 points[trueIndex].ConnectedPoints.Add(points[FirstBranchPointComboBox.SelectedIndex]);
                 AddBranchToCanvas(point1, point2);
                 RenewSecondBranchPointComboBox();
+                points[FirstBranchPointComboBox.SelectedIndex].VisualPoint.Stroke = Brushes.Black;
             }
             else
                 MessageBox.Show("Error: Two points shall be selected", "Error", MessageBoxButton.OK, MessageBoxImage.Error);
@@ -297,7 +306,7 @@ namespace InterfaceForGraphCalculations
                     branches.Remove(branch);
                     MainCanvas.Children.Remove(branch.VisualBranch);
                 }
-            
+
                 foreach (GraphPoint p in point.ConnectedPoints)
                 {
                     p.ConnectedPoints.Remove(point);
@@ -333,7 +342,6 @@ namespace InterfaceForGraphCalculations
 
 
         /*
-         * 
         private void MainCanvas_MouseLeftButtonDown(object sender, MouseButtonEventArgs e)
         {
             MakeCanvasItemsFollowMouse();
@@ -367,6 +375,47 @@ namespace InterfaceForGraphCalculations
         {
             for (int index = 0; index < points.Count; index++)
                 points[index].VisualPoint.Stroke = Brushes.Black;
+        }
+
+        private void GraphsDB_Click(object sender, RoutedEventArgs e)
+        {
+            if (dataWindow != null) dataWindow.Close();
+            dataWindow = new DataWindow();
+            dataWindow.Closed += (sender, args) => dataWindow = null;
+            dataWindow.Show();
+        }
+        private void VerticesDB_Click(object sender, RoutedEventArgs e)
+        {
+            if (dataWindow != null) dataWindow.Close();
+            dataWindow = new DataWindow();
+            dataWindow.Closed += (sender, args) => dataWindow = null;
+            dataWindow.Show();
+            dataWindow.SwitchTable("VISUAL_POINTS");
+        }
+        private void BranchesDB_Click(object sender, RoutedEventArgs e)
+        {
+            if (dataWindow != null) dataWindow.Close();
+            dataWindow = new DataWindow();
+            dataWindow.Closed += (sender, args) => dataWindow = null;
+            dataWindow.Show();
+            dataWindow.SwitchTable("VISUAL_BRANCHES");
+        }
+        private void PathsDB_Click(object sender, RoutedEventArgs e)
+        {
+            if (dataWindow != null) dataWindow.Close();
+            dataWindow = new DataWindow();
+            dataWindow.Closed += (sender, args) => dataWindow = null;
+            dataWindow.Show();
+        }
+
+        private void SaveToDatabase_Click(object sender, RoutedEventArgs e)
+        {
+
+        }
+
+        private void SaveToCSV_Click(object sender, RoutedEventArgs e)
+        {
+
         }
     }
 }

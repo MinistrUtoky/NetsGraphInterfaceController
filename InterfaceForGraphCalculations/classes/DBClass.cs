@@ -20,7 +20,8 @@ namespace InterfaceForGraphCalculations.classes
         {
             using (SqlConnection con = Get_DB_Connection())
                 foreach (DataRow row in con.GetSchema("Tables").Rows) 
-                    tableNames.Add((string)row["TABLE_NAME"]);
+                    if (!tableNames.Contains(row["TABLE_NAME"]))
+                        tableNames.Add((string)row["TABLE_NAME"]);
         }
 
         public static void FillDataGrid(DataGrid tableGrid, string tableName)
