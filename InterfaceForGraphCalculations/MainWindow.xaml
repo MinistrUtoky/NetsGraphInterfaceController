@@ -23,11 +23,11 @@
         <Menu Height="20" VerticalAlignment="Top" Grid.ColumnSpan="10">
             <MenuItem Header="File">
                 <MenuItem Header="New graph"/>
-                <MenuItem Header="Export to..">
+                <MenuItem Header="Save to..">
                     <MenuItem Header="Database" Click="SaveToDatabase_Click"/>
                     <MenuItem Header="CSV" Click="SaveToCSV_Click"/>
                 </MenuItem>
-                <MenuItem Header="Import from..">
+                <MenuItem Header="Open from..">
                     <MenuItem Header="Database"/>
                     <MenuItem Header="CSV"/>
                 </MenuItem>
@@ -150,6 +150,20 @@
                     <TextBox Grid.Row="1" MaxLength="40" Name="GraphName"/>
                     <TextBox Grid.Row="3" MaxWidth="100" Name="GraphDescription" TextWrapping="Wrap"/>
                     <Button Grid.Row="4" Grid.ColumnSpan="2" Content="Save" Click="SaveToDBButton_Click"/>
+                </Grid>
+            </Border>
+        </Popup>
+        <Popup Placement="Center" x:Name="OpenFromDBPopup" IsOpen="False" StaysOpen="False" MinWidth="100" MinHeight="100">
+            <Border BorderBrush="Black" BorderThickness="1">
+                <Grid Background="White">
+                    <Grid.RowDefinitions>
+                        <RowDefinition Height="1*"/>
+                        <RowDefinition Height="1*"/>
+                        <RowDefinition Height="1*"/>
+                        <RowDefinition Height="1*"/>
+                    </Grid.RowDefinitions>
+                    <ComboBox Name="GraphToOpenPopup" Grid.Row="1"/>
+                    <Button Grid.Row="3 " Grid.ColumnSpan="2" Content="Open" Click="OpenGraphButton_Click"/>
                 </Grid>
             </Border>
         </Popup>

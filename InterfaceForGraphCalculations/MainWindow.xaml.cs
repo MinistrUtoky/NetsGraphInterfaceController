@@ -36,7 +36,7 @@ namespace InterfaceForGraphCalculations
 
         private List<GraphBranch> branches = new List<GraphBranch>();
 
-        private bool mouseButtonDownOnCanvas;
+        //private bool mouseButtonDownOnCanvas;
 
         class GraphPoint
         {
@@ -69,9 +69,9 @@ namespace InterfaceForGraphCalculations
         public MainWindow()
         {
             InitializeComponent();
-            DBClass.Execute_SQL("DELETE FROM VISUAL_BRANCHES;");
-            DBClass.Execute_SQL("DELETE FROM VISUAL_POINTS;");
-            DBClass.Execute_SQL("DELETE FROM VISUAL_GRAPHS;");
+            //DBClass.Execute_SQL("DELETE FROM VISUAL_BRANCHES;");
+            //DBClass.Execute_SQL("DELETE FROM VISUAL_POINTS;");
+            //DBClass.Execute_SQL("DELETE FROM VISUAL_GRAPHS;");
             //DBClass.Execute_SQL("CREATE TABLE [dbo].[VISUAL_GRAPHS] ( GRAPH_ID INT PRIMARY KEY IDENTITY NOT NULL, Name VARCHAR(45) NOT NULL, Description TEXT, Points TEXT, Branches TEXT);");
             //DBClass.Execute_SQL("CREATE TABLE [dbo].[VISUAL_POINTS] ( POINT_ID INT PRIMARY KEY IDENTITY NOT NULL, X INT NOT NULL, Y INT NOT NULL, Connected_Branch_Ids TEXT);");
             //DBClass.Execute_SQL("ALTER TABLE [dbo].[VISUAL_POINTS] ADD Graph_Id INTEGER, FOREIGN KEY(Graph_Id) REFERENCES VISUAL_GRAPHS(GRAPH_ID);");
@@ -513,6 +513,11 @@ namespace InterfaceForGraphCalculations
                     sb.Append(id + ": " + "\n");
                 id++;
             }
+        }
+
+        private void OpenFromDB_Click(object sender, RoutedEventArgs e)
+        {
+
         }
     }
 }
