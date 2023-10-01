@@ -1,11 +1,14 @@
 ﻿using InterfaceForGraphCalculations.classes;
 using Microsoft.EntityFrameworkCore.Metadata.Internal;
+using Microsoft.VisualBasic;
+using Microsoft.Win32;
 using System;
 using System.Collections.Generic;
 using System.Collections.Specialized;
 using System.Data;
 using System.Diagnostics;
 using System.Drawing;
+using System.IO;
 using System.Text;
 using System.Text.RegularExpressions;
 using System.Windows;
@@ -366,7 +369,7 @@ namespace InterfaceForGraphCalculations
             }
         }
          */
-        
+
         private void FAQ_Click(object sender, RoutedEventArgs e)
         {
             Process p = new Process();
@@ -415,13 +418,49 @@ namespace InterfaceForGraphCalculations
             dataWindow.Show();
         }
 
-        private void SaveToDatabase_Click(object sender, RoutedEventArgs e) => SaveToDBPopup.IsOpen = true;
-
         private void SaveToCSV_Click(object sender, RoutedEventArgs e)
         {
-            
+            GraphNameCSV.Text = "";
+            GraphDescriptionCSV.Text = "";
+            SaveToCSVPopup.IsOpen = true;
+        }
+        private void SaveToCSVButton_Click(object sender, RoutedEventArgs e)
+        {
+            try
+            {
+                StringBuilder graphInfo = new StringBuilder();
+                graphInfo.Append(GraphNameCSV.Text + ";" + GraphDescriptionCSV.Text + "\n");
+                graphInfo.Append("---\n");
+                foreach (GraphPoint point in points)
+                    graphInfo.Append((Canvas.GetLeft(point.VisualPoint) + POINT_RADIUS - coordinatesCenter[0]).ToString()
+                                           + ";" + (Canvas.GetBottom(point.VisualPoint) + POINT_RADIUS - coordinatesCenter[1]).ToString() + "\n");
+                graphInfo.Append("---");
+                foreach (GraphBranch branch in branches)
+                    graphInfo.Append("\n" + points.IndexOf(branch.VisualPoint1) + ";" + points.IndexOf(branch.VisualPoint2));
+
+                SaveFileDialog exportDialog = new SaveFileDialog();
+                exportDialog.FileName = "Graph";
+                exportDialog.DefaultExt = ".csv";
+                exportDialog.Filter = "CSV files (*.csv)|*.csv";
+                exportDialog.InitialDirectory = Directory.GetParent(Directory.GetParent(Directory.GetParent(Directory.GetCurrentDirectory()).FullName).FullName).FullName + "\\data\\CSVFilesDefaultDirectory\\";
+                Nullable<bool> result = exportDialog.ShowDialog();
+                if (result == true)
+                {
+                    File.WriteAllText(exportDialog.FileName, graphInfo.ToString());
+                }
+            }
+            catch (Exception ex)
+            {
+                MessageBox.Show("Wasn't able to save file, Error: " + ex.Message, "Error", MessageBoxButton.OK, MessageBoxImage.Error);
+            }
         }
 
+        private void SaveToDatabase_Click(object sender, RoutedEventArgs e)
+        {
+            GraphName.Text = "";
+            GraphDescription.Text = "";
+            SaveToDBPopup.IsOpen = true;
+        }
         private void SaveToDBButton_Click(object sender, RoutedEventArgs e)
         {
             List<string> elem = new List<string>();
@@ -513,11 +552,112 @@ namespace InterfaceForGraphCalculations
                     sb.Append(id + ": " + "\n");
                 id++;
             }
+
+            SaveToDBPopup.IsOpen = false;
         }
 
+        private void OpenFromCSV_Click(object sender, RoutedEventArgs e)
+        {
+            try
+            {
+                OpenFileDialog importDialog = new OpenFileDialog();
+                importDialog.FileName = "Graph";
+                importDialog.DefaultExt = ".csv";
+                importDialog.Filter = "CSV files (*.csv)|*.csv";
+                importDialog.InitialDirectory = Directory.GetParent(Directory.GetParent(Directory.GetParent(Directory.GetCurrentDirectory()).FullName).FullName).FullName + "\\data\\CSVFilesDefaultDirectory\\";
+                Nullable<bool> result = importDialog.ShowDialog();
+                if (result == true)
+                {
+                    ClearMainCanvas();
+                    string[] graphInfo = File.ReadAllText(importDialog.FileName).Split("\n---\n"),
+                            pointsInfo = graphInfo[1].Split("\n"),
+                            branchesInfo = graphInfo[2].Split("\n"),
+                            pointXY, branchPoints;
+                    double x, y;
+                    foreach (string point in pointsInfo)
+                    {
+                        pointXY = point.Split(";");
+                        if (Double.TryParse(pointXY[0], out x) & Double.TryParse(pointXY[1], out y))
+                            AddPointToCanvas(x, y);
+                    }
+                    int pID_1, pID_2;
+                    foreach (string branch in branchesInfo)
+                    {
+                        branchPoints = branch.Split(";");
+                        if (Int32.TryParse(branchPoints[0], out pID_1) & Int32.TryParse(branchPoints[1], out pID_2))
+                            AddBranchToCanvas(points[pID_1], points[pID_2]);
+                    }
+                }
+            }
+            catch (Exception ex)
+            {
+                MessageBox.Show("Wasn't able to open file, Error: " + ex.Message, "Error", MessageBoxButton.OK, MessageBoxImage.Error);
+            }
+
+        }
         private void OpenFromDB_Click(object sender, RoutedEventArgs e)
         {
+            GraphToOpenFromDB.Items.Clear();
+            DataTable dt = DBClass.Get_DataTable("SELECT * FROM VISUAL_GRAPHS;");
+            List<string> row;
+            object[] dataArray;
+            foreach (DataRow dr in dt.Rows)
+            {
+                row = new List<string>();
+                dataArray = dr.ItemArray;
+                row.Add("ID: " + dataArray[0]);
+                row.Add("Name: " + dataArray[1]);
+                row.Add("Point IDs: " + dataArray[3]);
+                row.Add("Branch IDs: " + dataArray[4]);
+                GraphToOpenFromDB.Items.Add(String.Join(" | ", row));
+            }
+           
+            OpenFromDBPopup.IsOpen = true;
+        }
+        private void OpenFromDBButton_Click(object sender, RoutedEventArgs e) 
+        {
+            object[] dataArray = DBClass.Get_DataTable("SELECT * FROM VISUAL_GRAPHS;").Rows[GraphToOpenFromDB.SelectedIndex].ItemArray;
 
+            string[] points= dataArray[3].ToString().Split(";"), branches = dataArray[4].ToString().Split(";");
+            
+            List<int> pointIDs = new List<int>(), branchIDs = new List<int>();
+            for (int i = 0; i < points.Length - 1; i++) pointIDs.Add(int.Parse(points[i]));
+            for (int i = 0; i < branches.Length - 1; i++) branchIDs.Add(int.Parse(branches[i]));
+
+            ClearMainCanvas();
+            AddPointsFromDB(pointIDs);
+            AddBranchesFromDB(branchIDs, pointIDs);
+            OpenFromDBPopup.IsOpen = false;
+        }
+        private void ClearMainCanvas()
+        {
+            foreach (GraphPoint p in points)
+                MainCanvas.Children.Remove(p.VisualPoint);
+            foreach (GraphBranch b in branches)
+                MainCanvas.Children.Remove(b.VisualBranch);
+            points.Clear();
+            selectedPointUnconnectedIndices.Clear();
+            branches.Clear();
+        }
+        private void AddPointsFromDB(List<int> pointIDs)
+        {
+            DataTable pointDT;
+            foreach (int pointID in pointIDs)
+            {
+                pointDT = DBClass.Get_DataTable("SELECT * FROM VISUAL_POINTS WHERE POINT_ID='" + pointID + "';");
+                AddPointToCanvas((double)pointDT.Rows[0].ItemArray[1], (double)pointDT.Rows[0].ItemArray[2]);
+            }
+        }
+        private void AddBranchesFromDB(List<int> branchIDs, List<int> pointIDs)
+        {
+            DataTable branchDT; int pointID_1, pointID_2;
+            foreach (int branchID in branchIDs)
+            {
+                branchDT = DBClass.Get_DataTable("SELECT * FROM VISUAL_BRANCHES WHERE BRANCH_ID='" + branchID + "';");
+                pointID_1 = Int32.Parse(branchDT.Rows[0].ItemArray[1].ToString());
+                pointID_2 = Int32.Parse(branchDT.Rows[0].ItemArray[2].ToString());
+                AddBranchToCanvas(points[pointIDs.IndexOf(pointID_1)], points[pointIDs.IndexOf(pointID_2)]);
+            }
         }
     }
 }

@@ -28,8 +28,8 @@
                     <MenuItem Header="CSV" Click="SaveToCSV_Click"/>
                 </MenuItem>
                 <MenuItem Header="Open from..">
-                    <MenuItem Header="Database"/>
-                    <MenuItem Header="CSV"/>
+                    <MenuItem Header="Database" Click="OpenFromDB_Click"/>
+                    <MenuItem Header="CSV" Click="OpenFromCSV_Click"/>
                 </MenuItem>
             </MenuItem>
             <MenuItem Header="Edit">
@@ -162,8 +162,26 @@
                         <RowDefinition Height="1*"/>
                         <RowDefinition Height="1*"/>
                     </Grid.RowDefinitions>
-                    <ComboBox Name="GraphToOpenPopup" Grid.Row="1"/>
-                    <Button Grid.Row="3 " Grid.ColumnSpan="2" Content="Open" Click="OpenGraphButton_Click"/>
+                    <ComboBox Name="GraphToOpenFromDB" Grid.Row="1"/>
+                    <Button Grid.Row="3 " Grid.ColumnSpan="2" Content="Open" Click="OpenFromDBButton_Click"/>
+                </Grid>
+            </Border>
+        </Popup>
+        <Popup Placement="Center" Name="SaveToCSVPopup" IsOpen="False" StaysOpen="False" MinWidth="100" MinHeight="100">
+            <Border BorderBrush="Black" BorderThickness="1">
+                <Grid Background="White">
+                    <Grid.RowDefinitions>
+                        <RowDefinition Height="1*"/>
+                        <RowDefinition Height="1*"/>
+                        <RowDefinition Height="1*"/>
+                        <RowDefinition Height="1*"/>
+                        <RowDefinition Height="1*"/>
+                    </Grid.RowDefinitions>
+                    <TextBlock Grid.Row="0" Text="Graph Name:"/>
+                    <TextBlock Grid.Row="2" Text="Graph description"/>
+                    <TextBox Grid.Row="1" MaxLength="40" Name="GraphNameCSV"/>
+                    <TextBox Grid.Row="3" MaxWidth="100" Name="GraphDescriptionCSV" TextWrapping="Wrap"/>
+                    <Button Grid.Row="4" Grid.ColumnSpan="2" Content="Save" Click="SaveToCSVButton_Click"/>
                 </Grid>
             </Border>
         </Popup>
