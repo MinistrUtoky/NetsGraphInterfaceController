@@ -9,8 +9,8 @@ using System.Data;
 using System.Diagnostics;
 using System.Drawing;
 using System.IO;
+using System.Linq;
 using System.Text;
-using System.Text.RegularExpressions;
 using System.Windows;
 using System.Windows.Controls;
 using System.Windows.Input;
@@ -39,7 +39,8 @@ namespace InterfaceForGraphCalculations
 
         private List<GraphBranch> branches = new List<GraphBranch>();
 
-        //private bool mouseButtonDownOnCanvas;
+        private GraphPoint startPoint;
+        private System.Windows.Point canvasContextMenuOpeningPosition;
 
         class GraphPoint
         {
@@ -135,27 +136,6 @@ namespace InterfaceForGraphCalculations
             }
         }
 
-        /*
-        private void MainCanvas_MouseWheel(object sender, MouseWheelEventArgs e)
-        {
-            if (e.Delta > 0)
-            {
-                ResizeCanvasContents(1.01);
-            }
-            else if (e.Delta < 0)
-            {
-                ResizeCanvasContents(0.99);
-            }
-        }
-        private void ResizeCanvasContents(double scale)
-        {
-            foreach (Shape shape in MainCanvas.Children)
-            {
-                shape.Width = shape.ActualWidth * scale;
-                shape.Height = shape.ActualHeight * scale;
-            }
-        }*/
-
         private void AddPointToCanvas(double x, double y)
         {
             Ellipse point = new Ellipse();
@@ -166,10 +146,38 @@ namespace InterfaceForGraphCalculations
             Canvas.SetBottom(point, y + coordinatesCenter[1] - POINT_RADIUS); Canvas.SetLeft(point, x + coordinatesCenter[0] - POINT_RADIUS);
             MainCanvas.Children.Add(point);
             points.Add(new GraphPoint(point, new List<GraphBranch>(), new List<GraphPoint>()));
+            Canvas.SetZIndex(point, 2);
+
+            ContextMenu cm = new ContextMenu(); cm.StaysOpen = true;
+            cm.Opened += PointContextMenu_Opened;
+            point.ContextMenu = cm;
+
+            MenuItem connectToEveryone = new MenuItem(),
+                    startBranchHere = new MenuItem(),
+                    endBranchHere = new MenuItem(),
+                    deletePoint = new MenuItem();
+            connectToEveryone.Header = "Connect to everyone";
+            startBranchHere.Header = "Start branch here";
+            endBranchHere.Header = "End branch here";
+            deletePoint.Header = "Delete";
+            endBranchHere.IsEnabled = false;
+            connectToEveryone.Click += ConnectToEveryone_Click;
+            startBranchHere.Click += StartHere_Click;
+            endBranchHere.Click += EndHere_Click;
+            deletePoint.Click += DeleteThisPoint_Click;
+            cm.Items.Add(connectToEveryone);
+            cm.Items.Add(startBranchHere);
+            cm.Items.Add(endBranchHere);
+            cm.Items.Add(deletePoint);
         }
         private void AddBranchToCanvas(GraphPoint point1, GraphPoint point2)
         {
             GraphBranch graphBranch = new GraphBranch(AddLineToCanvas(point1, point2, Brushes.Black), point1, point2);
+            graphBranch.VisualBranch.ContextMenu = new ContextMenu();
+            MenuItem delete = new MenuItem();
+            delete.Header = "Delete";
+            delete.Click += DeleteThisBranch_Click;
+            graphBranch.VisualBranch.ContextMenu.Items.Add(delete);
             branches.Add(graphBranch);
             point1.ConnectedBranches.Add(graphBranch);
             point2.ConnectedBranches.Add(graphBranch);
@@ -181,8 +189,9 @@ namespace InterfaceForGraphCalculations
             Line line = new Line(); line.Stroke = brush;
             line.ClipToBounds = true;
             line.X1 = x1; line.Y1 = MainCanvas.ActualHeight - y1; line.X2 = x2; line.Y2 = MainCanvas.ActualHeight - y2;
-            line.StrokeThickness = 2;
+            line.StrokeThickness = 3;
             MainCanvas.Children.Add(line);
+            Canvas.SetZIndex(line, 1);
             return line;
         }
         private TextBlock AddTextToCanvas(double x, double y, string text)
@@ -192,12 +201,6 @@ namespace InterfaceForGraphCalculations
             graduationMark.ClipToBounds = true;
             MainCanvas.Children.Add(graduationMark);
             return graduationMark;
-        }
-        private void MoveLineOnCanvas(Line line, Ellipse point1, Ellipse point2) => MoveLineOnCanvas(line, Canvas.GetLeft(point1) + POINT_RADIUS, Canvas.GetBottom(point1) + POINT_RADIUS,
-                                                                                    Canvas.GetLeft(point2) + POINT_RADIUS, Canvas.GetBottom(point2) + POINT_RADIUS);
-        private void MoveLineOnCanvas(Line line, double x1, double y1, double x2, double y2)
-        {
-            line.X1 = x1; line.Y1 = MainCanvas.ActualHeight - y1; line.X2 = x2; line.Y2 = MainCanvas.ActualHeight - y2;
         }
 
         private void AddNewPoint_Click(object sender, RoutedEventArgs e)
@@ -216,7 +219,6 @@ namespace InterfaceForGraphCalculations
             }
             AddBranchPopup.IsOpen = true;
         }
-
         private void AddNewPointButton_Click(object sender, RoutedEventArgs e)
         {
             double x, y;
@@ -225,8 +227,24 @@ namespace InterfaceForGraphCalculations
             else
                 MessageBox.Show("Error: Only numbers can be entered", "Error", MessageBoxButton.OK, MessageBoxImage.Error);
         }
+        private void AddNewBranchButton_Click(object sender, RoutedEventArgs e)
+        {
+            if (FirstBranchPointComboBox.SelectedItem != null & SecondBranchPointComboBox.SelectedItem != null)
+            {
+                GraphPoint point1 = points[FirstBranchPointComboBox.SelectedIndex];
+                int trueIndex = selectedPointUnconnectedIndices[SecondBranchPointComboBox.SelectedIndex];
+                GraphPoint point2 = points[trueIndex];
+                point1.ConnectedPoints.Add(point2);
+                point2.ConnectedPoints.Add(point1);
+                AddBranchToCanvas(point1, point2);
+                RenewSecondBranchPointComboBox();
+                point1.VisualPoint.Stroke = Brushes.Black;
+            }
+            else
+                MessageBox.Show("Error: Two points shall be selected", "Error", MessageBoxButton.OK, MessageBoxImage.Error);
+        }
+        private void AddBranchPopup_Closed(object sender, EventArgs e) => BlackenThePoints();
 
-        private void FirstBranchPointComboBox_SelectionChanged(object sender, SelectionChangedEventArgs e) => RenewSecondBranchPointComboBox();
         private void RenewSecondBranchPointComboBox()
         {
             for (int index = 0; index < points.Count; index++)
@@ -235,8 +253,10 @@ namespace InterfaceForGraphCalculations
             if (FirstBranchPointComboBox.SelectedItem != null)
             {
                 selectedPointUnconnectedIndices.Clear();
-                for (int index = 0; index < points.Count; index++) {
-                    if (index != FirstBranchPointComboBox.SelectedIndex) {
+                for (int index = 0; index < points.Count; index++)
+                {
+                    if (index != FirstBranchPointComboBox.SelectedIndex)
+                    {
                         if (!points[FirstBranchPointComboBox.SelectedIndex].ConnectedPoints.Contains(points[index]))
                             selectedPointUnconnectedIndices.Add(index);
                     }
@@ -249,6 +269,7 @@ namespace InterfaceForGraphCalculations
                 points[FirstBranchPointComboBox.SelectedIndex].VisualPoint.Stroke = Brushes.Cyan;
             }
         }
+        private void FirstBranchPointComboBox_SelectionChanged(object sender, SelectionChangedEventArgs e) => RenewSecondBranchPointComboBox();
         private void SecondPointComboBox_SelectionChanged(object sender, SelectionChangedEventArgs e)
         {
             for (int index = 0; index < points.Count; index++)
@@ -259,20 +280,13 @@ namespace InterfaceForGraphCalculations
                 points[selectedPointUnconnectedIndices[SecondBranchPointComboBox.SelectedIndex]].VisualPoint.Stroke = Brushes.Cyan;
             }
         }
-        private void AddNewBranchButton_Click(object sender, RoutedEventArgs e)
+
+
+        private void MoveLineOnCanvas(Line line, Ellipse point1, Ellipse point2) => MoveLineOnCanvas(line, Canvas.GetLeft(point1) + POINT_RADIUS, Canvas.GetBottom(point1) + POINT_RADIUS,
+                                                                                    Canvas.GetLeft(point2) + POINT_RADIUS, Canvas.GetBottom(point2) + POINT_RADIUS);
+        private void MoveLineOnCanvas(Line line, double x1, double y1, double x2, double y2)
         {
-            if (FirstBranchPointComboBox.SelectedItem != null & SecondBranchPointComboBox.SelectedItem != null) {
-                GraphPoint point1 = points[FirstBranchPointComboBox.SelectedIndex];
-                int trueIndex = selectedPointUnconnectedIndices[SecondBranchPointComboBox.SelectedIndex];
-                GraphPoint point2 = points[trueIndex];
-                points[FirstBranchPointComboBox.SelectedIndex].ConnectedPoints.Add(points[trueIndex]);
-                points[trueIndex].ConnectedPoints.Add(points[FirstBranchPointComboBox.SelectedIndex]);
-                AddBranchToCanvas(point1, point2);
-                RenewSecondBranchPointComboBox();
-                points[FirstBranchPointComboBox.SelectedIndex].VisualPoint.Stroke = Brushes.Black;
-            }
-            else
-                MessageBox.Show("Error: Two points shall be selected", "Error", MessageBoxButton.OK, MessageBoxImage.Error);
+            line.X1 = x1; line.Y1 = MainCanvas.ActualHeight - y1; line.X2 = x2; line.Y2 = MainCanvas.ActualHeight - y2;
         }
 
         private void RemovePoint_Click(object sender, RoutedEventArgs e)
@@ -310,65 +324,46 @@ namespace InterfaceForGraphCalculations
             {
                 int pointsIndex = PointToRemoveComboBox.SelectedIndex;
                 GraphPoint point = points[pointsIndex];
-                foreach (GraphBranch branch in point.ConnectedBranches)
-                {
-                    branches.Remove(branch);
-                    MainCanvas.Children.Remove(branch.VisualBranch);
-                }
-
-                foreach (GraphPoint p in point.ConnectedPoints)
-                {
-                    p.ConnectedPoints.Remove(point);
-                }
-                points.RemoveAt(PointToRemoveComboBox.SelectedIndex);
-                MainCanvas.Children.Remove(point.VisualPoint);
-
-                RenewPointRemovalComboBox();
+                RemovePoint(point);
             }
             else
                 MessageBox.Show("Error: No point selected", "Error", MessageBoxButton.OK, MessageBoxImage.Error);
+        }
+        private void RemovePoint(GraphPoint point)
+        {
+            foreach (GraphBranch branch in point.ConnectedBranches)
+            {
+                branches.Remove(branch);
+                MainCanvas.Children.Remove(branch.VisualBranch);
+            }
+
+            foreach (GraphPoint p in point.ConnectedPoints)
+            {
+                p.ConnectedPoints.Remove(point);
+            }
+            points.Remove(point);
+            MainCanvas.Children.Remove(point.VisualPoint);
+
+            RenewPointRemovalComboBox();
         }
         private void RemoveBranchButton_Click(object sender, RoutedEventArgs e)
         {
             if (BranchToRemoveComboBox.SelectedItem != null)
             {
                 GraphBranch branch = branches[BranchToRemoveComboBox.SelectedIndex];
-                foreach (GraphPoint point in points)
-                {
-                    point.ConnectedBranches.Remove(branch);
-                    if (point.ConnectedPoints.Contains(branch.VisualPoint1))
-                        point.ConnectedPoints.Remove(branch.VisualPoint1);
-                    else if (point.ConnectedPoints.Contains(branch.VisualPoint2))
-                        point.ConnectedPoints.Remove(branch.VisualPoint2);
-                }
-                branches.Remove(branch);
-                MainCanvas.Children.Remove(branch.VisualBranch);
-                RenewBranchRemovalComboBox();
+                RemoveBranch(branch);
             }
             else
                 MessageBox.Show("Error: No branch selected", "Error", MessageBoxButton.OK, MessageBoxImage.Error);
         }
-
-        /*
-        private void MainCanvas_MouseLeftButtonDown(object sender, MouseButtonEventArgs e)
+        private void RemoveBranch(GraphBranch branch)
         {
-            MakeCanvasItemsFollowMouse();
+            branch.VisualPoint1.ConnectedPoints.Remove(branch.VisualPoint2);
+            branch.VisualPoint2.ConnectedPoints.Remove(branch.VisualPoint1);
+            branches.Remove(branch);
+            MainCanvas.Children.Remove(branch.VisualBranch);
+            RenewBranchRemovalComboBox();
         }
-
-        private void MainCanvas_MouseLeftButtonUp(object sender, MouseButtonEventArgs e)
-        {
-            mouseButtonDownOnCanvas = false;
-        }
-
-        async void MakeCanvasItemsFollowMouse()
-        {
-            mouseButtonDownOnCanvas = true;
-            while (mouseButtonDownOnCanvas)
-            {
-
-            }
-        }
-         */
 
         private void FAQ_Click(object sender, RoutedEventArgs e)
         {
@@ -377,8 +372,6 @@ namespace InterfaceForGraphCalculations
             p.StartInfo.FileName = "https://en.wikipedia.org/wiki/Graph_theory";
             p.Start();
         }
-
-        private void AddBranchPopup_Closed(object sender, EventArgs e) => BlackenThePoints();
 
         private void BlackenThePoints()
         {
@@ -475,8 +468,8 @@ namespace InterfaceForGraphCalculations
 
             foreach (GraphPoint point in points) {
                 elem.Clear();
-                elem.Add((Canvas.GetLeft(point.VisualPoint) + POINT_RADIUS - coordinatesCenter[0]).ToString());
-                elem.Add((Canvas.GetBottom(point.VisualPoint) + POINT_RADIUS - coordinatesCenter[1]).ToString());
+                elem.Add(String.Join(".", (Canvas.GetLeft(point.VisualPoint) + POINT_RADIUS - coordinatesCenter[0]).ToString().Split(",")));
+                elem.Add(String.Join(".", (Canvas.GetBottom(point.VisualPoint) + POINT_RADIUS - coordinatesCenter[1]).ToString().Split(",")));
                 elem.Add("");
                 elem.Add(graphId.ToString()); 
                 
@@ -494,17 +487,19 @@ namespace InterfaceForGraphCalculations
                 foreach (GraphBranch b in point.ConnectedBranches)
                 {
                     if (bs.ContainsKey(b))
-                        bs[b][1] = (pointId - i).ToString();
+                        bs[b][1] = (pointId - points.Count + i + 1).ToString();
                     else
                     {
                         bs[b] = new string[2];
-                        bs[b][0] = (pointId - i).ToString();
+                        bs[b][0] = (pointId - points.Count + i + 1).ToString();
                     }
                 }
                 pointsSb.Append((pointId - i).ToString() + ";");
                 i++;
             }
             
+
+
             foreach (GraphBranch b in branches)
             {
                 elem.Clear();
@@ -544,8 +539,8 @@ namespace InterfaceForGraphCalculations
             foreach (GraphPoint p in points)
             {
                 DataTable pointByID = DBClass.Get_DataTable("SELECT * FROM VISUAL_POINTS WHERE [POINT_ID] = '" + id + "'");
-                DBClass.DB_Update_Record("VISUAL_POINTS", new List<string>() { id.ToString(), pointByID.Rows[0].ItemArray[1].ToString(),
-                                                                            pointByID.Rows[0].ItemArray[2].ToString(), pointsConnectedBranchIDs[p], pointByID.Rows[0].ItemArray[4].ToString() });
+                DBClass.DB_Update_Record("VISUAL_POINTS", new List<string>() { id.ToString(), String.Join(".", pointByID.Rows[0].ItemArray[1].ToString().Split(",")),
+                                                                            String.Join(".", pointByID.Rows[0].ItemArray[2].ToString().Split(",")), pointsConnectedBranchIDs[p], pointByID.Rows[0].ItemArray[4].ToString() });
                 if (pointsConnectedBranchIDs.ContainsKey(p))
                     sb.Append(id + ": " + pointsConnectedBranchIDs[p] + "\n");
                 else
@@ -585,7 +580,11 @@ namespace InterfaceForGraphCalculations
                     {
                         branchPoints = branch.Split(";");
                         if (Int32.TryParse(branchPoints[0], out pID_1) & Int32.TryParse(branchPoints[1], out pID_2))
+                        {
+                            points[pID_1].ConnectedPoints.Add(points[pID_2]);
+                            points[pID_2].ConnectedPoints.Add(points[pID_1]);
                             AddBranchToCanvas(points[pID_1], points[pID_2]);
+                        }
                     }
                 }
             }
@@ -656,8 +655,110 @@ namespace InterfaceForGraphCalculations
                 branchDT = DBClass.Get_DataTable("SELECT * FROM VISUAL_BRANCHES WHERE BRANCH_ID='" + branchID + "';");
                 pointID_1 = Int32.Parse(branchDT.Rows[0].ItemArray[1].ToString());
                 pointID_2 = Int32.Parse(branchDT.Rows[0].ItemArray[2].ToString());
+                points[pointIDs.IndexOf(pointID_1)].ConnectedPoints.Add(points[pointIDs.IndexOf(pointID_2)]);
+                points[pointIDs.IndexOf(pointID_2)].ConnectedPoints.Add(points[pointIDs.IndexOf(pointID_1)]);
                 AddBranchToCanvas(points[pointIDs.IndexOf(pointID_1)], points[pointIDs.IndexOf(pointID_2)]);
             }
+        }
+
+        private void PointContextMenu_Opened(object sender, RoutedEventArgs e)
+        {
+            if (startPoint != null)
+            {
+                if (startPoint.VisualPoint != ((sender as ContextMenu).Parent as System.Windows.Controls.Primitives.Popup).PlacementTarget as Ellipse)
+                    ((sender as ContextMenu).Items[2] as MenuItem).IsEnabled = true;
+                else
+                    ((sender as ContextMenu).Items[2] as MenuItem).IsEnabled = false;
+            }
+            else
+                ((sender as ContextMenu).Items[2] as MenuItem).IsEnabled = false;
+        }
+        private void ConnectToEveryone_Click(object sender, RoutedEventArgs e)
+        {
+            Ellipse point = (((sender as MenuItem).Parent as ContextMenu).Parent as System.Windows.Controls.Primitives.Popup).PlacementTarget as Ellipse;
+            point.Stroke = Brushes.Red;
+            GraphPoint graphPoint = points.Find(p => p.VisualPoint.Equals(point));
+            points.ForEach(p =>
+            {
+                if (graphPoint != p)
+                {
+                    if (!graphPoint.ConnectedPoints.Contains(p) & !p.ConnectedPoints.Contains(graphPoint))
+                    {
+                        graphPoint.ConnectedPoints.Add(p);
+                        p.ConnectedPoints.Add(graphPoint);
+                        AddBranchToCanvas(graphPoint, p);
+                        graphPoint.VisualPoint.Stroke = Brushes.Black;
+                    }
+                }
+            });
+        }
+        private void StartHere_Click(object sender, RoutedEventArgs e)
+        {
+            if (startPoint != null)
+                startPoint.VisualPoint.Stroke = Brushes.Black;
+            Ellipse point = (((sender as MenuItem).Parent as ContextMenu).Parent as System.Windows.Controls.Primitives.Popup).PlacementTarget as Ellipse;
+            point.Stroke = Brushes.Cyan;
+            startPoint = points.Find(p => p.VisualPoint.Equals(point));
+        }
+        private void EndHere_Click(object sender, RoutedEventArgs e)
+        {
+            Ellipse point = (((sender as MenuItem).Parent as ContextMenu).Parent as System.Windows.Controls.Primitives.Popup).PlacementTarget as Ellipse;
+            GraphPoint graphPoint = points.Find(p => p.VisualPoint.Equals(point));
+            if (startPoint.ConnectedPoints.Contains(graphPoint)) {
+                MessageBox.Show("Branch already exists", "Error", MessageBoxButton.OK, MessageBoxImage.Error); 
+                return;
+            }
+            graphPoint.ConnectedPoints.Add(startPoint);
+            startPoint.ConnectedPoints.Add(graphPoint);
+            AddBranchToCanvas(graphPoint, startPoint);
+
+            startPoint.VisualPoint.Stroke = Brushes.Black;
+            startPoint = null;
+        }
+        private void DeleteThisPoint_Click(object sender, RoutedEventArgs e) {
+            Ellipse point = (((sender as MenuItem).Parent as ContextMenu).Parent as System.Windows.Controls.Primitives.Popup).PlacementTarget as Ellipse;
+            GraphPoint graphPoint = points.Find(p => p.VisualPoint.Equals(point));
+            RemovePoint(graphPoint);
+        }
+
+        private void MainCanvasContextMenu_Opened(object sender, RoutedEventArgs e)
+        {
+            canvasContextMenuOpeningPosition = Mouse.GetPosition(MainCanvas);
+        }
+        private void AddNewPointHereButton_Click(object sender, RoutedEventArgs e)
+        {
+            ContextMenu cm = (sender as MenuItem).Parent as ContextMenu;
+
+            if (cm != null)
+            {
+                AddPointToCanvas(canvasContextMenuOpeningPosition.X - coordinatesCenter[0],
+                                MainCanvas.ActualHeight - canvasContextMenuOpeningPosition.Y - coordinatesCenter[1]);
+            }
+        }
+
+        private void DeleteThisBranch_Click(object sender, RoutedEventArgs e)
+        {
+            Line line = (((sender as MenuItem).Parent as ContextMenu).Parent as System.Windows.Controls.Primitives.Popup).PlacementTarget as Line;
+
+            GraphBranch branch = branches.Find(p => p.VisualBranch.Equals(line));
+            RemoveBranch(branch);
+        }
+
+        private void NewGraph_Click(object sender, RoutedEventArgs e)
+        {
+            NewGraphPopup.IsOpen = true;
+            this.IsEnabled = false;
+        }
+        private void CloseNewGraphPopup_Click(object sender, RoutedEventArgs e)
+        {
+            NewGraphPopup.IsOpen = false;
+            this.IsEnabled = true;
+        }
+        private void NewGraphButton_Click(object sender, RoutedEventArgs e)
+        {
+            ClearMainCanvas();
+            NewGraphPopup.IsOpen = false;
+            this.IsEnabled = true;
         }
     }
 }

@@ -59,9 +59,16 @@ namespace InterfaceForGraphCalculations.classes
 
         public static void Execute_SQL(string SQL_Text)
         {
-            SqlConnection cn_connection = Get_DB_Connection();
-            SqlCommand cmd_Command = new SqlCommand(SQL_Text, cn_connection);
-            cmd_Command.ExecuteNonQuery();
+            try
+            {
+                SqlConnection cn_connection = Get_DB_Connection();
+                SqlCommand cmd_Command = new SqlCommand(SQL_Text, cn_connection);
+                cmd_Command.ExecuteNonQuery();
+            }
+            catch (Exception ex)
+            {
+                throw new Exception(ex + " on command \"" + SQL_Text + "\"");
+            }
         }
 
         public static void Close_DB_Connection()

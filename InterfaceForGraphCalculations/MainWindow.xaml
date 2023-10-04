@@ -22,7 +22,7 @@
         </Grid.RowDefinitions>
         <Menu Height="20" VerticalAlignment="Top" Grid.ColumnSpan="10">
             <MenuItem Header="File">
-                <MenuItem Header="New graph"/>
+                <MenuItem Header="New graph" Click="NewGraph_Click"/>
                 <MenuItem Header="Save to..">
                     <MenuItem Header="Database" Click="SaveToDatabase_Click"/>
                     <MenuItem Header="CSV" Click="SaveToCSV_Click"/>
@@ -58,14 +58,37 @@
         </Menu>
         <Border Grid.Row="2" Grid.Column="1" BorderBrush="Black" BorderThickness="1">
             <Canvas HorizontalAlignment="Stretch" VerticalAlignment="Stretch" Name="MainCanvas" ClipToBounds="True">
+                <Rectangle Fill="White" Stroke="White" HorizontalAlignment="Stretch" VerticalAlignment="Stretch" ClipToBounds="True" MinWidth="10000" MinHeight="10000"/>
                 <Line Name="YAxis" StrokeThickness="2" Stroke="DarkGray" X1="30" X2="30" Y1="0"/>
                 <Line Name="XAxis" StrokeThickness="2" Stroke="DarkGray" X1="30"/>
+                <Canvas.ContextMenu>
+                    <ContextMenu Opened="MainCanvasContextMenu_Opened">
+                        <MenuItem Header="Add point here" Click="AddNewPointHereButton_Click"/>
+                    </ContextMenu>
+                </Canvas.ContextMenu>
             </Canvas>
         </Border>
         <StackPanel Grid.Column="3" Grid.Row="2">
             <Button Content="Add new point" Click="AddNewPoint_Click"/>
             <Button Content="Add new branch" Click="AddNewBranch_Click"/>
         </StackPanel>
+        <Popup Placement="Center" x:Name="NewGraphPopup" IsOpen="False" MinWidth="100" MinHeight="50">
+            <Border BorderBrush="Black" BorderThickness="1">
+                <Grid Background="White">
+                    <Grid.ColumnDefinitions>
+                        <ColumnDefinition Width="1*"/>
+                        <ColumnDefinition Width="1*"/>
+                    </Grid.ColumnDefinitions>
+                    <Grid.RowDefinitions>
+                        <RowDefinition Height="1*"/>
+                        <RowDefinition Height="1*"/>
+                    </Grid.RowDefinitions>
+                    <TextBlock TextAlignment="Center" Text="Are you sure?" Grid.ColumnSpan="2"/>
+                    <Button Content="No" Grid.Row="1" Click="CloseNewGraphPopup_Click"/>
+                    <Button Content="Yes" Grid.Row="1" Grid.Column="1" Click="NewGraphButton_Click"/>
+                </Grid>
+            </Border>
+        </Popup>
         <Popup Placement="Center" x:Name="AddPointPopup" IsOpen="False" StaysOpen="False" MinWidth="100" MinHeight="100">
             <Border BorderBrush="Black" BorderThickness="1">
                 <Grid Background="White">
