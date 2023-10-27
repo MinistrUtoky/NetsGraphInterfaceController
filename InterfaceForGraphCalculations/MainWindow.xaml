@@ -35,7 +35,7 @@
             <MenuItem Header="Edit">
                 <MenuItem Header="Add new point" Click="AddNewPoint_Click"/>
                 <MenuItem Header="Add new branch" Click="AddNewBranch_Click"/>
-                <MenuItem Header="Modify"/>
+                <MenuItem Header="Modify" Click="Modify_Click"/>
                 <MenuItem Header="Remove point" Click="RemovePoint_Click"/>
                 <MenuItem Header="Remove branch" Click="RemoveBranch_Click"/>
             </MenuItem>
@@ -44,8 +44,8 @@
                 <MenuItem Header="Paths"/>
             </MenuItem>
             <MenuItem Header="View">
-                <MenuItem Header="Canvas properties" IsCheckable="True"/>
-                <MenuItem Header="Graph properties" IsCheckable="True"/>
+                <MenuItem Header="Canvas properties" IsCheckable="True" />
+                <MenuItem Header="Graph properties" IsCheckable="True" Name="GraphProperties"  Checked="GraphPropertiesView_Checked" Unchecked="GraphPropertiesView_Unchecked"/>
             </MenuItem>
             <MenuItem Header="Database">
                 <MenuItem Header="Graphs" Click="GraphsDB_Click"/>
@@ -57,7 +57,7 @@
             <MenuItem Header="Help"/>
         </Menu>
         <Border Grid.Row="2" Grid.Column="1" BorderBrush="Black" BorderThickness="1">
-            <Canvas HorizontalAlignment="Stretch" VerticalAlignment="Stretch" Name="MainCanvas" ClipToBounds="True">
+            <Canvas HorizontalAlignment="Stretch" VerticalAlignment="Stretch" Name="MainCanvas" ClipToBounds="True" MouseDown="Canvas_MouseDown" MouseUp="">
                 <Rectangle Fill="White" Stroke="White" HorizontalAlignment="Stretch" VerticalAlignment="Stretch" ClipToBounds="True" MinWidth="10000" MinHeight="10000"/>
                 <Line Name="YAxis" StrokeThickness="2" Stroke="DarkGray" X1="30" X2="30" Y1="0"/>
                 <Line Name="XAxis" StrokeThickness="2" Stroke="DarkGray" X1="30"/>
@@ -205,6 +205,99 @@
                     <TextBox Grid.Row="1" MaxLength="40" Name="GraphNameCSV"/>
                     <TextBox Grid.Row="3" MaxWidth="100" Name="GraphDescriptionCSV" TextWrapping="Wrap"/>
                     <Button Grid.Row="4" Grid.ColumnSpan="2" Content="Save" Click="SaveToCSVButton_Click"/>
+                </Grid>
+            </Border>
+        </Popup>
+        <Popup Placement="Center" Name="ModifyPointPopup" IsOpen="False" StaysOpen="False" MinWidth="100" MinHeight="100">
+            <Border BorderBrush="Black" BorderThickness="1">
+                <Grid Background="White">
+                    <Grid.RowDefinitions>
+                        <RowDefinition Height="1*"/>
+                        <RowDefinition Height="1*"/>
+                    </Grid.RowDefinitions>
+                    <Grid.ColumnDefinitions>
+                        <ColumnDefinition Width="1*"/>
+                        <ColumnDefinition Width="1*"/>
+                        <ColumnDefinition Width="1*"/>
+                        <ColumnDefinition Width="1*"/>
+                    </Grid.ColumnDefinitions>
+                    <TextBlock Text="New X:" Grid.Column="0"/>
+                    <TextBlock Text="New Y:" Grid.Column="2"/>
+                    <TextBox Text="0" Grid.Column="1" MinWidth="40" Name="PointCoordinatesXModified"/>
+                    <TextBox Text="0" Grid.Column="3" MinWidth="40" Name="PointCoordinatesYModified"/>
+                    <Button Grid.Row="1" Grid.ColumnSpan="4" Content="Save" Click="ModifyPointButton_Click"/>
+                </Grid>
+            </Border>
+        </Popup>
+        <Popup Placement="Center" Name="WhatToModifyPopup" IsOpen="False" StaysOpen="False" MinWidth="100" MinHeight="50" >
+            <Border BorderBrush="Black" BorderThickness="1">
+                <Grid Background="White">
+                    <Grid.ColumnDefinitions>
+                        <ColumnDefinition Width="1*"/>
+                        <ColumnDefinition Width="1*"/>
+                    </Grid.ColumnDefinitions>
+                    <Button Content="Point" Click="ChooseToModifyPoint_Click"/>
+                    <Button Grid.Column="1" Content="Branch" Click="ChooseToModifyBranch_Click"/>
+                </Grid>
+            </Border>
+        </Popup>
+        <Popup Placement="Center" Name="PointToModifySelectionPopup" IsOpen="False" StaysOpen="False" MinWidth="100" MinHeight="50">
+            <Border BorderBrush="Black" BorderThickness="1">
+                <Grid Background="White">
+                    <Grid.RowDefinitions>
+                        <RowDefinition Height="1*"/>
+                        <RowDefinition Height="1*"/>
+                    </Grid.RowDefinitions>
+                    <ComboBox Name="PointToModifyComboBox"/>
+                    <Button Grid.Row="1" Grid.ColumnSpan="4" Content="Modify" Click="ModifySelectedPointButton_Click"/>
+                </Grid>
+            </Border>
+        </Popup>
+        <Popup Placement="Center" Name="BranchToModifySelectionPopup" IsOpen="False" StaysOpen="False" MinWidth="100" MinHeight="50">
+            <Border BorderBrush="Black" BorderThickness="1">
+                <Grid Background="White">
+                    <Grid.RowDefinitions>
+                        <RowDefinition Height="1*"/>
+                        <RowDefinition Height="1*"/>
+                    </Grid.RowDefinitions>
+                    <ComboBox Name="BranchToModifyComboBox"/>
+                    <Button Grid.Row="1" Grid.ColumnSpan="4" Content="Modify" Click="ModifySelectedBranchButton_Click"/>
+                </Grid>
+            </Border>
+        </Popup>
+        <Popup Placement="Center" Name="ModifyBranchPopup" IsOpen="False" StaysOpen="False" MinWidth="100" MinHeight="100" >
+            <Border BorderBrush="Black" BorderThickness="1">
+                <Grid Background="White">
+                    <Grid.RowDefinitions>
+                        <RowDefinition Height="1*"/>
+                        <RowDefinition Height="1*"/>
+                        <RowDefinition Height="1*"/>
+                        <RowDefinition Height="1*"/>
+                        <RowDefinition Height="1*"/>
+                    </Grid.RowDefinitions>
+                    <TextBlock Text="Maximum channel capacity:"/>
+                    <TextBox Name="MaxCapacity" Grid.Row="1"/>
+                    <TextBlock Text="Current channel load" Grid.Row="2"/>
+                    <TextBox Name="CurrentLoad" Grid.Row="3"/>
+                    <Button Grid.Row="4" Grid.ColumnSpan="4" Content="Modify" Click="ModifyBranchButton_Click"/>
+                </Grid>
+            </Border>
+        </Popup>
+        <Popup Placement="Center" Name="ChangeBranchLoadPopup" IsOpen="False" StaysOpen="False" MinWidth="100" MinHeight="100" >
+            <Border BorderBrush="Black" BorderThickness="1">
+                <Grid Background="White">
+                    <Grid.RowDefinitions>
+                        <RowDefinition Height="1*"/>
+                        <RowDefinition Height="1*"/>
+                        <RowDefinition Height="1*"/>
+                        <RowDefinition Height="1*"/>
+                        <RowDefinition Height="1*"/>
+                    </Grid.RowDefinitions>
+                    <TextBlock Name="MaxLoadShowOff"/>
+                    <TextBlock Name="CurrentLoadShowOff" Grid.Row="1"/>
+                    <TextBlock Text="Load shift value" Grid.Row="2"/>
+                    <TextBox Name="CurrentLoadDelta" Grid.Row="3"/>
+                    <Button Grid.Row="4" Grid.ColumnSpan="4" Content="Change" Click="ChangeBranchLoadButton_Click"/>
                 </Grid>
             </Border>
         </Popup>

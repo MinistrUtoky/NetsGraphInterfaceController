@@ -67,7 +67,7 @@ namespace InterfaceForGraphCalculations.classes
             }
             catch (Exception ex)
             {
-                throw new Exception(ex + " on command \"" + SQL_Text + "\"");
+                    throw new Exception(ex + " on command \"" + SQL_Text + "\"");
             }
         }
 
