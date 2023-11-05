@@ -11,6 +11,7 @@ using System.Windows.Controls;
 using System.Windows.Input;
 using System.Windows.Media;
 using System.Windows.Shapes;
+using static InterfaceForGraphCalculations.classes.Graph;
 
 namespace InterfaceForGraphCalculations
 {
@@ -29,7 +30,6 @@ namespace InterfaceForGraphCalculations
         private SolidColorBrush loadedGradientColor = Brushes.Red;
         private SolidColorBrush halfwayLoadedGradientColor = Brushes.Yellow;
         private SolidColorBrush unloadedGradientColor = Brushes.Green;
-        private bool windowStarted = false;
         private double[] coordinatesCenter = new double[2] { 30, 30 };
 
         private List<Line> graduation = new List<Line>();
@@ -40,25 +40,32 @@ namespace InterfaceForGraphCalculations
 
         private List<GraphBranch> branches = new List<GraphBranch>();
 
-        private GraphPoint startPoint;
+        private GraphPoint endPoint;
         private GraphPoint pointToModify;
         private System.Windows.Point canvasContextMenuOpeningPosition;
         private GraphBranch branchToModify;
 
+        private System.Windows.Point canvasLeftClickPosition;
+        private double totalZoom=1f;
+
+        private Graph mainGraph;
+
         class GraphPoint
         {
+            private Graph.Vertex vertex; 
             private Ellipse visualPoint;
             private List<GraphBranch> connectedBranches;
             private List<GraphPoint> connectedPoints;
             private TextBlock pointTextBlock;
 
+            public Graph.Vertex Vertex => vertex;
             public TextBlock PointTextBlock => pointTextBlock;
             public Ellipse VisualPoint => visualPoint;
             public List<GraphBranch> ConnectedBranches => connectedBranches;
             public List<GraphPoint> ConnectedPoints => connectedPoints;
-            public GraphPoint(Ellipse visualPoint, List<GraphBranch> connectedBranches, List<GraphPoint> connectedPoints)
+            public GraphPoint(Ellipse visualPoint, Graph.Vertex vertex, List<GraphBranch> connectedBranches, List<GraphPoint> connectedPoints)
             {
-                this.visualPoint = visualPoint; this.connectedBranches = connectedBranches; this.connectedPoints = connectedPoints;
+                this.visualPoint = visualPoint; this.vertex = vertex; this.connectedBranches = connectedBranches; this.connectedPoints = connectedPoints;
             }
             public void AssignTextBlock(TextBlock textBlock)
             {
@@ -69,6 +76,7 @@ namespace InterfaceForGraphCalculations
         }
         class GraphBranch
         {
+            private Graph.Edge edge;
             private Line visualBranch;
             private GraphPoint visualPoint1;
             private GraphPoint visualPoint2;
@@ -78,7 +86,16 @@ namespace InterfaceForGraphCalculations
             private Polygon arrowToPoint1;
             private Polygon arrowToPoint2;
 
+            public enum Direction
+            {
+                Both,
+                ToFirst,
+                ToSecond
+            }
+            private Direction direction;
 
+            public Direction BranchDirection => direction;
+            public Graph.Edge Edge => edge;
             public Polygon ArrowToPoint1 => arrowToPoint1;
             public Polygon ArrowToPoint2 => arrowToPoint2;
             public TextBlock LoadTextBlock => loadTextBlock;
@@ -87,9 +104,13 @@ namespace InterfaceForGraphCalculations
             public GraphPoint VisualPoint2 => visualPoint2;
             public float MaximumCapacity => maximumCapacity;
             public float CurrentLoad => currentLoad;
-            public GraphBranch(Line visualBranch, GraphPoint visualPoint1, GraphPoint visualPoint2, float maxCapacity = 0, float currentLoad = 0)
+            public GraphBranch(Line visualBranch, Graph.Edge edge, GraphPoint visualPoint1, GraphPoint visualPoint2, 
+                                float maxCapacity = 0, float currentLoad = 0, Direction direction = Direction.Both)
             {
-                this.visualBranch = visualBranch; this.visualPoint1 = visualPoint1; this.visualPoint2 = visualPoint2;
+                this.visualBranch = visualBranch; this.edge = edge; 
+                this.visualPoint1 = visualPoint1; this.visualPoint2 = visualPoint2;
+                this.maximumCapacity = maxCapacity; this.currentLoad = currentLoad;
+                this.direction = direction;
             }
             public void AssignTextBlock(TextBlock textBlock)
             {
@@ -97,22 +118,55 @@ namespace InterfaceForGraphCalculations
             }
             public void ShowTextBlock() => loadTextBlock.Visibility = Visibility.Visible;
             public void HideTextBlock() => loadTextBlock.Visibility = Visibility.Hidden;
-            public void SetMaximumCapacity(float maxCapacity) { maximumCapacity = maxCapacity; if (maxCapacity != 0) { loadTextBlock.Text = loadTextBlock.Text = (Math.Round(currentLoad / maximumCapacity, 2) * 100).ToString() + "%"; } }
-            public void SetCurrentLoad(float load) { currentLoad = load; if (maximumCapacity != 0) { loadTextBlock.Text = (Math.Round(currentLoad / maximumCapacity, 3) * 100).ToString() + "%"; } }
-            public void IncreaseLoad(float additionalLoad) => currentLoad = currentLoad + additionalLoad > maximumCapacity ? maximumCapacity : currentLoad + additionalLoad;
-            public void DecreaseLoad(float retrievedLoad) => currentLoad = currentLoad - retrievedLoad < 0 ? 0 : currentLoad - retrievedLoad;
+            public void SetMaximumCapacity(float maxCapacity) {
+                maximumCapacity = maxCapacity;
+                edge.SetBandwidth(maxCapacity);
+                if (maxCapacity != 0)
+                {                   
+                    loadTextBlock.Text = loadTextBlock.Text = (Math.Round(currentLoad / maximumCapacity, 2) * 100).ToString() + "%";
+                }
+            }
+            public void SetCurrentLoad(float load) { 
+                currentLoad = load;
+                edge.AddFlow(load - edge.GetCurrentFlow());
+                if (maximumCapacity != 0) 
+                {
+                    loadTextBlock.Text = (Math.Round(currentLoad / maximumCapacity, 3) * 100).ToString() + "%"; 
+                } 
+            }
+            public void IncreaseLoad(float additionalLoad)
+            {
+                edge.AddFlow(additionalLoad);
+                currentLoad = currentLoad + additionalLoad > maximumCapacity ? maximumCapacity : currentLoad + additionalLoad;
+            }
+            public void DecreaseLoad(float retrievedLoad)
+            {
+                edge.AddFlow(-retrievedLoad);
+                currentLoad = currentLoad - retrievedLoad < 0 ? 0 : currentLoad - retrievedLoad;
+            }
 
             public void AssignArrowToVisualPoint1(Polygon arrow) => arrowToPoint1 = arrow;
             public void AssignArrowToVisualPoint2(Polygon arrow) => arrowToPoint2 = arrow;
-            public void ShowArrowToVisualPoint1() { if (arrowToPoint1 != null) arrowToPoint1.Visibility = Visibility.Visible; }
-            public void HideArrowToVisualPoint1() { if (arrowToPoint1 != null) arrowToPoint1.Visibility = Visibility.Hidden; }
-            public void ShowArrowToVisualPoint2() { if (arrowToPoint2 != null) arrowToPoint2.Visibility = Visibility.Visible; }
-            public void HideArrowToVisualPoint2() { if (arrowToPoint2 != null) arrowToPoint2.Visibility = Visibility.Hidden; }
+            public void ShowArrows() { 
+                if (arrowToPoint1 != null & (direction==Direction.Both || direction==Direction.ToFirst)) 
+                    arrowToPoint1.Visibility = Visibility.Visible;
+                if (arrowToPoint2 != null & (direction == Direction.Both || direction == Direction.ToSecond))
+                    arrowToPoint2.Visibility = Visibility.Visible;
+            }
+            public void HideArrows() { 
+                if (arrowToPoint1 != null) arrowToPoint1.Visibility = Visibility.Hidden;
+                if (arrowToPoint2 != null) arrowToPoint2.Visibility = Visibility.Hidden;
+            }
+            public void ChangeDirection(Direction newDirection)
+            {
+                direction = newDirection;
+            }
         }
 
         public MainWindow()
         {
             InitializeComponent();
+            mainGraph = new Graph();
             //DBClass.Execute_SQL("DELETE FROM VISUAL_BRANCHES;");
             //DBClass.Execute_SQL("DELETE FROM VISUAL_POINTS;");
             //DBClass.Execute_SQL("DELETE FROM VISUAL_GRAPHS;");
@@ -131,12 +185,14 @@ namespace InterfaceForGraphCalculations
 
         private void Window_SizeChanged(object sender, SizeChangedEventArgs e)
         {
-            XAxis.X2 = MainCanvas.ActualWidth;
-            XAxis.Y1 = MainCanvas.ActualHeight - coordinatesCenter[1]; XAxis.Y2 = MainCanvas.ActualHeight - coordinatesCenter[1];
-            YAxis.Y2 = MainCanvas.ActualHeight - coordinatesCenter[1];
+            XAxis.X1 = coordinatesCenter[0]; XAxis.Y1 = MainCanvas.ActualHeight - coordinatesCenter[1];
+            XAxis.X2 = MainCanvas.ActualWidth; XAxis.Y2 = MainCanvas.ActualHeight - coordinatesCenter[1];
+
+            YAxis.X1 = coordinatesCenter[0]; YAxis.Y1 = MainCanvas.ActualHeight - coordinatesCenter[1];
+            YAxis.X2 = coordinatesCenter[0]; YAxis.Y2 = 0;
 
             RedrawGraduation();
-            RedrawGraph(e);
+            RedrawGraph();
         }
 
         private void RedrawGraduation()
@@ -148,20 +204,21 @@ namespace InterfaceForGraphCalculations
 
             graduationMarks.Add(AddTextToCanvas(coordinatesCenter[0] - 30, coordinatesCenter[1], "0"));
             graduationMarks.Add(AddTextToCanvas(coordinatesCenter[0], coordinatesCenter[1] - 30, "0"));
-            for (int i = 1; i < Math.Floor(MainCanvas.ActualHeight / GRADUATION_SCALE_UNIT); i++)
+            for (double i = 0; i < Math.Round((Math.Abs(YAxis.Y2 - YAxis.Y1)) / GRADUATION_SCALE_UNIT / totalZoom, 1); i += totalZoom<1? Math.Floor(1 / totalZoom): Math.Round(1 / totalZoom, 2))
             {
                 graduationMarks.Add(AddTextToCanvas(coordinatesCenter[0] - 30,
-                                                    coordinatesCenter[1] + i * GRADUATION_SCALE_UNIT, (i * GRADUATION_SCALE_UNIT).ToString()));
+                                                    coordinatesCenter[1] + i * GRADUATION_SCALE_UNIT * totalZoom, (Math.Round(i * GRADUATION_SCALE_UNIT, 2)).ToString()));
                 graduation.Add(AddLineToCanvas(coordinatesCenter[0] - 3,
-                                                coordinatesCenter[1] + i * GRADUATION_SCALE_UNIT,
+                                                coordinatesCenter[1] + i * GRADUATION_SCALE_UNIT * totalZoom,
                                                 coordinatesCenter[0] + 3,
-                                                coordinatesCenter[1] + i * GRADUATION_SCALE_UNIT, Brushes.DarkGray));
+                                                coordinatesCenter[1] + i * GRADUATION_SCALE_UNIT * totalZoom, Brushes.DarkGray));
             }
-            for (int i = 1; i < Math.Floor(MainCanvas.ActualWidth / GRADUATION_SCALE_UNIT); i++)
-            {
-                graduationMarks.Add(AddTextToCanvas(coordinatesCenter[0] + i * GRADUATION_SCALE_UNIT,
-                                                    coordinatesCenter[1] - 30, (i * 50).ToString()));
-                graduation.Add(AddLineToCanvas(coordinatesCenter[0] + i * GRADUATION_SCALE_UNIT, coordinatesCenter[1] - 3, coordinatesCenter[0] + i * GRADUATION_SCALE_UNIT, coordinatesCenter[1] + 3, Brushes.DarkGray));
+            for (double i = 0; i < Math.Round(Math.Abs(XAxis.X2 - XAxis.X1) / GRADUATION_SCALE_UNIT / totalZoom, 1); i += totalZoom < 1 ? Math.Floor(1 / totalZoom) : Math.Round(1 / totalZoom, 2))
+            {                
+                graduationMarks.Add(AddTextToCanvas(coordinatesCenter[0] + i * GRADUATION_SCALE_UNIT * totalZoom,
+                                                    coordinatesCenter[1] - 30, (Math.Round(i * GRADUATION_SCALE_UNIT,2)).ToString()));
+                graduation.Add(AddLineToCanvas(coordinatesCenter[0] + i * GRADUATION_SCALE_UNIT * totalZoom, coordinatesCenter[1] - 3, 
+                                            coordinatesCenter[0] + i * GRADUATION_SCALE_UNIT * totalZoom, coordinatesCenter[1] + 3, Brushes.DarkGray));
             }
             StringBuilder sb = new StringBuilder();
             foreach (var g in graduation)
@@ -169,7 +226,7 @@ namespace InterfaceForGraphCalculations
                 sb.Append(g.X1 + " " + g.Y1 + " " + g.X2 + " " + g.Y2 + ";\n");
             }
         }
-        private void RedrawGraph(SizeChangedEventArgs e)
+        private void RedrawGraph()
         {
             foreach (var branch in branches)
             {
@@ -179,21 +236,68 @@ namespace InterfaceForGraphCalculations
                 CreateBranchArrows(branch);
                 if (GraphProperties.IsChecked)
                 {
-                    branch.ShowArrowToVisualPoint1();
-                    branch.ShowArrowToVisualPoint2();
+                    ColorBranchByLoad(branch); 
+                    branch.ShowTextBlock();
+                    branch.ShowArrows();
                 }
             }
         }
 
-        private void Canvas_MouseDown(EventArgs e)
+        private void MainCanvas_MouseLeftButtonDown(object sender, MouseButtonEventArgs e)
         {
-
-        }
-        private void Canvas_MouseUp(EventArgs e)
-        {
-
+            canvasLeftClickPosition = e.GetPosition(MainCanvas);
         }
 
+        private void MainCanvas_MouseLeftButtonUp(object sender, MouseButtonEventArgs e)
+        {
+            XAxis.X1 = XAxis.X1 + e.GetPosition(MainCanvas).X - canvasLeftClickPosition.X;
+            XAxis.X2 = XAxis.X2 + e.GetPosition(MainCanvas).X - canvasLeftClickPosition.X;
+            XAxis.Y1 = XAxis.Y1 + e.GetPosition(MainCanvas).Y - canvasLeftClickPosition.Y;
+            XAxis.Y2 = XAxis.Y2 + e.GetPosition(MainCanvas).Y - canvasLeftClickPosition.Y;
+
+            YAxis.X1 = YAxis.X1 + e.GetPosition(MainCanvas).X - canvasLeftClickPosition.X;
+            YAxis.X2 = YAxis.X2 + e.GetPosition(MainCanvas).X - canvasLeftClickPosition.X;
+            YAxis.Y1 = YAxis.Y1 + e.GetPosition(MainCanvas).Y - canvasLeftClickPosition.Y;
+            YAxis.Y2 = YAxis.Y2 + e.GetPosition(MainCanvas).Y - canvasLeftClickPosition.Y;
+
+            foreach (GraphPoint point in points)
+            {
+                ModifyPointPosition(point, Canvas.GetLeft(point.VisualPoint) + e.GetPosition(MainCanvas).X - canvasLeftClickPosition.X - coordinatesCenter[0] + POINT_RADIUS,
+                                            Canvas.GetBottom(point.VisualPoint) - e.GetPosition(MainCanvas).Y + canvasLeftClickPosition.Y - coordinatesCenter[1] + POINT_RADIUS);
+            }
+            coordinatesCenter[0] += e.GetPosition(MainCanvas).X - canvasLeftClickPosition.X;
+            coordinatesCenter[1] += -e.GetPosition(MainCanvas).Y + canvasLeftClickPosition.Y;
+            XAxis.X2 = XAxis.X1 + MainCanvas.ActualWidth - coordinatesCenter[0];
+            YAxis.Y2 = YAxis.Y1 - MainCanvas.ActualHeight + coordinatesCenter[1];
+            RedrawGraph();
+            RedrawGraduation();
+        }
+
+        private void MainCanvas_MouseWheel(object sender, MouseWheelEventArgs e)
+        {
+            double zoom = 0.001f * e.Delta < -1? 1: 1 + 0.001f * e.Delta;
+            double xDelta, yDelta, xDeltaZoomed, yDeltaZoomed;
+            totalZoom *= zoom;
+            double mouseX = e.GetPosition(MainCanvas).X;
+            double mouseY = MainCanvas.ActualHeight - e.GetPosition(MainCanvas).Y;
+
+            foreach (GraphPoint point in points)
+            {
+                ModifyPointPosition(point, mouseX - zoom * (mouseX - (Canvas.GetLeft(point.VisualPoint)) - POINT_RADIUS) - coordinatesCenter[0],
+                                            mouseY - zoom * (mouseY - (Canvas.GetBottom(point.VisualPoint)) - POINT_RADIUS) - coordinatesCenter[1] );
+            }
+            coordinatesCenter[0] = mouseX - zoom * (mouseX - coordinatesCenter[0]);
+            coordinatesCenter[1] = mouseY - zoom * (mouseY - coordinatesCenter[1]);
+
+            XAxis.X1 = coordinatesCenter[0]; XAxis.Y1 = MainCanvas.ActualHeight - coordinatesCenter[1];
+            XAxis.X2 = MainCanvas.ActualWidth; XAxis.Y2 = MainCanvas.ActualHeight - coordinatesCenter[1];
+
+            YAxis.X1 = coordinatesCenter[0]; YAxis.Y1 = MainCanvas.ActualHeight - coordinatesCenter[1];
+            YAxis.X2 = coordinatesCenter[0]; YAxis.Y2 = 0;
+
+            RedrawGraduation();
+            RedrawGraph();
+        }
         private void AddPointToCanvas(double x, double y)
         {
             Ellipse point = new Ellipse();
@@ -203,12 +307,14 @@ namespace InterfaceForGraphCalculations
             point.Width = POINT_RADIUS * 2; point.Height = POINT_RADIUS * 2;
             Canvas.SetBottom(point, y + coordinatesCenter[1] - POINT_RADIUS); Canvas.SetLeft(point, x + coordinatesCenter[0] - POINT_RADIUS);
             MainCanvas.Children.Add(point);
-            points.Add(new GraphPoint(point, new List<GraphBranch>(), new List<GraphPoint>()));
+            points.Add(new GraphPoint(point, new Graph.Vertex((float)x, (float)y), new List<GraphBranch>(), new List<GraphPoint>()));
             Canvas.SetZIndex(point, 2);
 
             CreatePointContextMenu(point);
 
             CreatePointInfoTextBlock(points[points.Count - 1]);
+
+            mainGraph.AddVertex(points[points.Count - 1].Vertex);
 
             if (GraphProperties.IsChecked)
             {
@@ -253,12 +359,16 @@ namespace InterfaceForGraphCalculations
             Canvas.SetBottom(pointTextBlock, Canvas.GetBottom(graphPoint.VisualPoint) + POINT_RADIUS * 2);
             Canvas.SetLeft(pointTextBlock, Canvas.GetLeft(graphPoint.VisualPoint) + POINT_RADIUS * 2);
             Canvas.SetZIndex(pointTextBlock, 3);
-            pointTextBlock.Text = "(" + Math.Round(Canvas.GetLeft(graphPoint.VisualPoint), 2) + " " + Math.Round(Canvas.GetBottom(graphPoint.VisualPoint), 2) + ")";
+            pointTextBlock.Text = "(" + Math.Round((Canvas.GetLeft(graphPoint.VisualPoint) + POINT_RADIUS - coordinatesCenter[0]) / totalZoom, 2)
+                                    + " " + Math.Round((Canvas.GetBottom(graphPoint.VisualPoint) + POINT_RADIUS - coordinatesCenter[1]) / totalZoom, 2) + ")";
             graphPoint.AssignTextBlock(pointTextBlock);
+            
         }
-        private void AddBranchToCanvas(GraphPoint point1, GraphPoint point2)
+        private void AddBranchToCanvas(GraphPoint point1, GraphPoint point2, float maxLoad, float currentLoad, GraphBranch.Direction direction)
         {
-            GraphBranch graphBranch = new GraphBranch(AddLineToCanvas(point1, point2, Brushes.Black), point1, point2);
+            GraphBranch graphBranch = new GraphBranch(AddLineToCanvas(point1, point2, Brushes.Black), 
+                                    new Graph.Edge(point1.Vertex, point2.Vertex, maxLoad, currentLoad, direction!=GraphBranch.Direction.Both), 
+                                                        point1, point2, maxLoad, currentLoad, direction);
 
             CreateBranchContextMenu(graphBranch);
 
@@ -271,29 +381,31 @@ namespace InterfaceForGraphCalculations
             point2.ConnectedPoints.Add(point1);
             point1.ConnectedBranches.Add(graphBranch);
             point2.ConnectedBranches.Add(graphBranch);
+
             if (GraphProperties.IsChecked)
             {
-                graphBranch.ShowArrowToVisualPoint1();
-                graphBranch.ShowArrowToVisualPoint2();
-                graphBranch.ShowTextBlock();
                 ColorBranchByLoad(graphBranch);
+                graphBranch.ShowTextBlock();
+                graphBranch.ShowArrows();
             }
+
+            RedrawGraph();
         }
         private void CreateBranchArrows(GraphBranch graphBranch)
         {
-            Vector vectorToVisPoint1 = new Vector(Canvas.GetLeft(graphBranch.VisualPoint2.VisualPoint) - Canvas.GetLeft(graphBranch.VisualPoint1.VisualPoint),
+            System.Windows.Vector vectorToVisPoint1 = new System.Windows.Vector(Canvas.GetLeft(graphBranch.VisualPoint2.VisualPoint) - Canvas.GetLeft(graphBranch.VisualPoint1.VisualPoint),
                                        Canvas.GetBottom(graphBranch.VisualPoint2.VisualPoint) - Canvas.GetBottom(graphBranch.VisualPoint1.VisualPoint));
             vectorToVisPoint1.Normalize();
-            vectorToVisPoint1 = new Vector(-vectorToVisPoint1.X, vectorToVisPoint1.Y);
-            vectorToVisPoint1 = vectorToVisPoint1 * 6;
+            vectorToVisPoint1 = new System.Windows.Vector(-vectorToVisPoint1.X, vectorToVisPoint1.Y);
+            vectorToVisPoint1 = vectorToVisPoint1 * ARROW_LENGTH;
 
-            Polygon arrow2 = CreateArrowTowards(graphBranch.VisualPoint1.VisualPoint, vectorToVisPoint1, Brushes.Red);
-            Polygon arrow1 = CreateArrowTowards(graphBranch.VisualPoint2.VisualPoint, -vectorToVisPoint1, Brushes.Red);
+            Polygon arrow2 = CreateArrowTowards(graphBranch.VisualPoint1.VisualPoint, vectorToVisPoint1, graphBranch.VisualBranch.Stroke);
+            Polygon arrow1 = CreateArrowTowards(graphBranch.VisualPoint2.VisualPoint, -vectorToVisPoint1, graphBranch.VisualBranch.Stroke);
 
             graphBranch.AssignArrowToVisualPoint1(arrow1);
             graphBranch.AssignArrowToVisualPoint2(arrow2);
         }
-        private Polygon CreateArrowTowards(Ellipse point, Vector dirVector, Brush color)
+        private Polygon CreateArrowTowards(Ellipse point, System.Windows.Vector dirVector, Brush color)
         {
             Polygon arrow = new Polygon();
             PointCollection arrowPoints = new PointCollection();
@@ -304,8 +416,8 @@ namespace InterfaceForGraphCalculations
             System.Windows.Point point1 = new System.Windows.Point();
             System.Windows.Point point2 = new System.Windows.Point();
             System.Windows.Point point3 = new System.Windows.Point();
-            point1.X = Canvas.GetLeft(point) + POINT_RADIUS - 5 / dirVector.Length * dirVector.X;
-            point1.Y = MainCanvas.ActualHeight - Canvas.GetBottom(point) - POINT_RADIUS - 5 / dirVector.Length * dirVector.Y;
+            point1.X = Canvas.GetLeft(point) + POINT_RADIUS - ARROW_WIDTH / dirVector.Length * dirVector.X;
+            point1.Y = MainCanvas.ActualHeight - Canvas.GetBottom(point) - POINT_RADIUS - ARROW_WIDTH / dirVector.Length * dirVector.Y;
 
             point2 = point1 - dirVector;
             point2.X += -dirVector.X - dirVector.Y;
@@ -334,7 +446,7 @@ namespace InterfaceForGraphCalculations
                 Canvas.GetLeft(graphBranch.VisualPoint2.VisualPoint)
                 + (Canvas.GetLeft(graphBranch.VisualPoint1.VisualPoint) - Canvas.GetLeft(graphBranch.VisualPoint2.VisualPoint)) / 2);
             Canvas.SetZIndex(loadTextBlock, 3);
-            loadTextBlock.Text = "100%";
+            loadTextBlock.Text = graphBranch.MaximumCapacity==0? "100%": Math.Round(graphBranch.CurrentLoad/graphBranch.MaximumCapacity*100, 2) + "%";
             graphBranch.AssignTextBlock(loadTextBlock);
         }
         private void CreateBranchContextMenu(GraphBranch graphBranch)
@@ -342,15 +454,19 @@ namespace InterfaceForGraphCalculations
             graphBranch.VisualBranch.ContextMenu = new ContextMenu();
             MenuItem changeLoadByValue = new MenuItem();
             MenuItem modify = new MenuItem();
+            MenuItem direct = new MenuItem();
             MenuItem delete = new MenuItem();
             changeLoadByValue.Header = "Change load by value";
             modify.Header = "Modify";
+            direct.Header = "Choose direction";
             delete.Header = "Delete";
             changeLoadByValue.Click += ChangeBranchLoadByValue_Click;
+            direct.Click += ChangeBranchDirection_Click;
             modify.Click += ModifyBranch_Click;
             delete.Click += DeleteThisBranch_Click;
             graphBranch.VisualBranch.ContextMenu.Items.Add(changeLoadByValue);
             graphBranch.VisualBranch.ContextMenu.Items.Add(modify);
+            graphBranch.VisualBranch.ContextMenu.Items.Add(direct);
             graphBranch.VisualBranch.ContextMenu.Items.Add(delete);
         }
         private Line AddLineToCanvas(GraphPoint point1, GraphPoint point2, SolidColorBrush brush) => AddLineToCanvas(Canvas.GetLeft(point1.VisualPoint) + POINT_RADIUS, Canvas.GetBottom(point1.VisualPoint) + POINT_RADIUS,
@@ -386,7 +502,8 @@ namespace InterfaceForGraphCalculations
             selectedPointUnconnectedIndices.Clear();
             for (int i = 0; i < points.Count; i++)
             {
-                FirstBranchPointComboBox.Items.Add("Point " + (i + 1) + "(" + (Canvas.GetLeft(points[i].VisualPoint) + POINT_RADIUS - coordinatesCenter[0]) + ", " + (Canvas.GetBottom(points[i].VisualPoint) + POINT_RADIUS - coordinatesCenter[1]) + ")");
+                FirstBranchPointComboBox.Items.Add("Point " + (i + 1) + "(" + Math.Round((Canvas.GetLeft(points[i].VisualPoint) + POINT_RADIUS - coordinatesCenter[0]) / totalZoom, 2)
+                                                    + ", " + Math.Round((Canvas.GetBottom(points[i].VisualPoint) + POINT_RADIUS - coordinatesCenter[1]) / totalZoom, 2) + ")");
             }
             AddBranchPopup.IsOpen = true;
         }
@@ -405,7 +522,7 @@ namespace InterfaceForGraphCalculations
                 GraphPoint point1 = points[FirstBranchPointComboBox.SelectedIndex];
                 int trueIndex = selectedPointUnconnectedIndices[SecondBranchPointComboBox.SelectedIndex];
                 GraphPoint point2 = points[trueIndex];
-                AddBranchToCanvas(point1, point2);
+                AddBranchToCanvas(point1, point2, 0, 0, GraphBranch.Direction.Both);
                 RenewSecondBranchPointComboBox();
                 point1.VisualPoint.Stroke = Brushes.Black;
             }
@@ -457,16 +574,23 @@ namespace InterfaceForGraphCalculations
             Canvas.SetLeft(graphPoint.PointTextBlock, newPosX + coordinatesCenter[0] - POINT_RADIUS);
             Canvas.SetBottom(graphPoint.PointTextBlock, newPosY + coordinatesCenter[1] + POINT_RADIUS);
 
-            GraphPoint[] connectedPoints = new GraphPoint[graphPoint.ConnectedPoints.Count];
-            graphPoint.ConnectedPoints.CopyTo(connectedPoints);
-
+            GraphBranch[] connectedBranches = new GraphBranch[graphPoint.ConnectedBranches.Count];
+            graphPoint.ConnectedBranches.CopyTo(connectedBranches);
+                        
             while (graphPoint.ConnectedBranches.Count != 0)
-            {
-                GraphPoint connectedGraphPoint = graphPoint.ConnectedBranches[0].VisualPoint1 == graphPoint ? graphPoint.ConnectedBranches[0].VisualPoint2 : graphPoint.ConnectedBranches[0].VisualPoint1;
                 RemoveBranch(graphPoint.ConnectedBranches[0]);
+
+            foreach (GraphBranch gb in connectedBranches)
+            {
+                if (gb.VisualPoint1 == graphPoint)
+                {
+                    AddBranchToCanvas(graphPoint, gb.VisualPoint2, gb.MaximumCapacity, gb.CurrentLoad, gb.BranchDirection);
+                }
+                else
+                {
+                    AddBranchToCanvas(gb.VisualPoint1, graphPoint, gb.MaximumCapacity, gb.CurrentLoad, gb.BranchDirection);
+                }
             }
-            foreach (GraphPoint gp in connectedPoints)
-                AddBranchToCanvas(graphPoint, gp);
         }
         private void MoveLineOnCanvas(Line line, Ellipse point1, Ellipse point2) => MoveLineOnCanvas(line, Canvas.GetLeft(point1) + POINT_RADIUS, Canvas.GetBottom(point1) + POINT_RADIUS,
                                                                                     Canvas.GetLeft(point2) + POINT_RADIUS, Canvas.GetBottom(point2) + POINT_RADIUS);
@@ -485,7 +609,8 @@ namespace InterfaceForGraphCalculations
             PointToRemoveComboBox.Items.Clear();
             for (int i = 0; i < points.Count; i++)
             {
-                PointToRemoveComboBox.Items.Add("Point " + (i + 1) + "(" + (Canvas.GetLeft(points[i].VisualPoint) + POINT_RADIUS - coordinatesCenter[0]) + ", " + (Canvas.GetBottom(points[i].VisualPoint) + POINT_RADIUS - coordinatesCenter[1]) + ")");
+                PointToRemoveComboBox.Items.Add("Point " + (i + 1) + "(" + Math.Round((Canvas.GetLeft(points[i].VisualPoint) + POINT_RADIUS - coordinatesCenter[0]) / totalZoom, 2)
+                                                    + ", " + Math.Round((Canvas.GetBottom(points[i].VisualPoint) + POINT_RADIUS - coordinatesCenter[1]) / totalZoom, 2) + ")");
             }
         }
         private void RemoveBranch_Click(object sender, RoutedEventArgs e)
@@ -499,8 +624,10 @@ namespace InterfaceForGraphCalculations
             int i = 0;
             foreach (var branch in branches)
             {
-                BranchToRemoveComboBox.Items.Add("Branch " + (i + 1) + "[(" + (Canvas.GetLeft(branch.VisualPoint1.VisualPoint) + POINT_RADIUS - coordinatesCenter[0]) + ", " + (Canvas.GetBottom(branch.VisualPoint1.VisualPoint) + POINT_RADIUS - coordinatesCenter[1]) + "), " +
-                                                                 "(" + (Canvas.GetLeft(branch.VisualPoint2.VisualPoint) + POINT_RADIUS - coordinatesCenter[0]) + ", " + (Canvas.GetBottom(branch.VisualPoint2.VisualPoint) + POINT_RADIUS - coordinatesCenter[1]) + ")]");
+                BranchToRemoveComboBox.Items.Add("Branch " + (i + 1) + "[(" + Math.Round((Canvas.GetLeft(branch.VisualPoint1.VisualPoint) + POINT_RADIUS - coordinatesCenter[0]) / totalZoom, 2)
+                                                                + ", " + Math.Round((Canvas.GetBottom(branch.VisualPoint1.VisualPoint) + POINT_RADIUS - coordinatesCenter[1]) / totalZoom, 2) + "), " +
+                                                                 "(" + Math.Round((Canvas.GetLeft(branch.VisualPoint2.VisualPoint) + POINT_RADIUS - coordinatesCenter[0]) / totalZoom, 2)
+                                                                 + ", " + Math.Round((Canvas.GetBottom(branch.VisualPoint2.VisualPoint) + POINT_RADIUS - coordinatesCenter[1]) / totalZoom, 2) + ")]");
                 i++;
             }
         }
@@ -564,7 +691,17 @@ namespace InterfaceForGraphCalculations
             selectedPointUnconnectedIndices.Clear();
             branches.Clear();
         }
+        private void ZoomAndCenterToDefaults()
+        {
+            coordinatesCenter[0] = 30; coordinatesCenter[1] = 30;
+            totalZoom = 1;
+            XAxis.X1 = coordinatesCenter[0]; XAxis.Y1 = MainCanvas.ActualHeight - coordinatesCenter[1];
+            XAxis.X2 = MainCanvas.ActualWidth; XAxis.Y2 = MainCanvas.ActualHeight - coordinatesCenter[1];
 
+            YAxis.X1 = coordinatesCenter[0]; YAxis.Y1 = MainCanvas.ActualHeight - coordinatesCenter[1];
+            YAxis.X2 = coordinatesCenter[0]; YAxis.Y2 = 0;
+            RedrawGraduation(); RedrawGraph();
+        }
         private void FAQ_Click(object sender, RoutedEventArgs e)
         {
             Process p = new Process();
@@ -625,8 +762,8 @@ namespace InterfaceForGraphCalculations
                 graphInfo.Append(GraphNameCSV.Text + ";" + GraphDescriptionCSV.Text + "\n");
                 graphInfo.Append("---\n");
                 foreach (GraphPoint point in points)
-                    graphInfo.Append((Canvas.GetLeft(point.VisualPoint) + POINT_RADIUS - coordinatesCenter[0]).ToString()
-                                           + ";" + (Canvas.GetBottom(point.VisualPoint) + POINT_RADIUS - coordinatesCenter[1]).ToString() + "\n");
+                    graphInfo.Append(Math.Round((Canvas.GetLeft(point.VisualPoint) + POINT_RADIUS - coordinatesCenter[0])/totalZoom, 2).ToString()
+                                           + ";" + Math.Round((Canvas.GetBottom(point.VisualPoint) + POINT_RADIUS - coordinatesCenter[1]) / totalZoom,2).ToString() + "\n");
                 graphInfo.Append("---");
                 foreach (GraphBranch branch in branches)
                     graphInfo.Append("\n" + points.IndexOf(branch.VisualPoint1) + ";" + points.IndexOf(branch.VisualPoint2));
@@ -669,8 +806,8 @@ namespace InterfaceForGraphCalculations
             foreach (GraphPoint point in points)
             {
                 elem.Clear();
-                elem.Add(String.Join(".", (Canvas.GetLeft(point.VisualPoint) + POINT_RADIUS - coordinatesCenter[0]).ToString().Split(",")));
-                elem.Add(String.Join(".", (Canvas.GetBottom(point.VisualPoint) + POINT_RADIUS - coordinatesCenter[1]).ToString().Split(",")));
+                elem.Add(String.Join(".", Math.Round((Canvas.GetLeft(point.VisualPoint) + POINT_RADIUS - coordinatesCenter[0]) / totalZoom, 2).ToString().Split(",")));
+                elem.Add(String.Join(".", Math.Round((Canvas.GetBottom(point.VisualPoint) + POINT_RADIUS - coordinatesCenter[1]) / totalZoom, 2).ToString().Split(",")));
                 elem.Add("");
                 elem.Add(graphId.ToString());
 
@@ -775,7 +912,7 @@ namespace InterfaceForGraphCalculations
                     {
                         pointXY = point.Split(";");
                         if (Double.TryParse(pointXY[0], out x) & Double.TryParse(pointXY[1], out y))
-                            AddPointToCanvas(x, y);
+                            AddPointToCanvas(x * totalZoom, y * totalZoom);
                     }
                     int pID_1, pID_2;
                     foreach (string branch in branchesInfo)
@@ -783,7 +920,7 @@ namespace InterfaceForGraphCalculations
                         branchPoints = branch.Split(";");
                         if (Int32.TryParse(branchPoints[0], out pID_1) & Int32.TryParse(branchPoints[1], out pID_2))
                         {
-                            AddBranchToCanvas(points[pID_1], points[pID_2]);
+                            AddBranchToCanvas(points[pID_1], points[pID_2], 0, 0, GraphBranch.Direction.Both);
                         }
                     }
                 }
@@ -823,7 +960,7 @@ namespace InterfaceForGraphCalculations
             for (int i = 0; i < points.Length - 1; i++) pointIDs.Add(int.Parse(points[i]));
             for (int i = 0; i < branches.Length - 1; i++) branchIDs.Add(int.Parse(branches[i]));
 
-            ClearMainCanvas();
+            ClearMainCanvas(); ZoomAndCenterToDefaults();
             AddPointsFromDB(pointIDs);
             AddBranchesFromDB(branchIDs, pointIDs);
             OpenFromDBPopup.IsOpen = false;
@@ -834,7 +971,7 @@ namespace InterfaceForGraphCalculations
             foreach (int pointID in pointIDs)
             {
                 pointDT = DBClass.Get_DataTable("SELECT * FROM VISUAL_POINTS WHERE POINT_ID='" + pointID + "';");
-                AddPointToCanvas((double)pointDT.Rows[0].ItemArray[1], (double)pointDT.Rows[0].ItemArray[2]);
+                AddPointToCanvas((double)pointDT.Rows[0].ItemArray[1]*totalZoom, (double)pointDT.Rows[0].ItemArray[2] * totalZoom);
             }
         }
         private void AddBranchesFromDB(List<int> branchIDs, List<int> pointIDs)
@@ -845,15 +982,15 @@ namespace InterfaceForGraphCalculations
                 branchDT = DBClass.Get_DataTable("SELECT * FROM VISUAL_BRANCHES WHERE BRANCH_ID='" + branchID + "';");
                 pointID_1 = Int32.Parse(branchDT.Rows[0].ItemArray[1].ToString());
                 pointID_2 = Int32.Parse(branchDT.Rows[0].ItemArray[2].ToString());
-                AddBranchToCanvas(points[pointIDs.IndexOf(pointID_1)], points[pointIDs.IndexOf(pointID_2)]);
+                AddBranchToCanvas(points[pointIDs.IndexOf(pointID_1)], points[pointIDs.IndexOf(pointID_2)], 0, 0, GraphBranch.Direction.Both);
             }
         }
 
         private void PointContextMenu_Opened(object sender, RoutedEventArgs e)
         {
-            if (startPoint != null)
+            if (endPoint != null)
             {
-                if (startPoint.VisualPoint != ((sender as ContextMenu).Parent as System.Windows.Controls.Primitives.Popup).PlacementTarget as Ellipse)
+                if (endPoint.VisualPoint != ((sender as ContextMenu).Parent as System.Windows.Controls.Primitives.Popup).PlacementTarget as Ellipse)
                     ((sender as ContextMenu).Items[2] as MenuItem).IsEnabled = true;
                 else
                     ((sender as ContextMenu).Items[2] as MenuItem).IsEnabled = false;
@@ -872,7 +1009,7 @@ namespace InterfaceForGraphCalculations
                 {
                     if (!graphPoint.ConnectedPoints.Contains(p) & !p.ConnectedPoints.Contains(graphPoint))
                     {
-                        AddBranchToCanvas(graphPoint, p);
+                        AddBranchToCanvas(graphPoint, p, 0, 0, GraphBranch.Direction.Both);
                         graphPoint.VisualPoint.Stroke = Brushes.Black;
                     }
                 }
@@ -880,25 +1017,25 @@ namespace InterfaceForGraphCalculations
         }
         private void StartHere_Click(object sender, RoutedEventArgs e)
         {
-            if (startPoint != null)
-                startPoint.VisualPoint.Stroke = Brushes.Black;
+            if (endPoint != null)
+                endPoint.VisualPoint.Stroke = Brushes.Black;
             Ellipse point = (((sender as MenuItem).Parent as ContextMenu).Parent as System.Windows.Controls.Primitives.Popup).PlacementTarget as Ellipse;
             point.Stroke = Brushes.Cyan;
-            startPoint = points.Find(p => p.VisualPoint.Equals(point));
+            endPoint = points.Find(p => p.VisualPoint.Equals(point));
         }
         private void EndHere_Click(object sender, RoutedEventArgs e)
         {
             Ellipse point = (((sender as MenuItem).Parent as ContextMenu).Parent as System.Windows.Controls.Primitives.Popup).PlacementTarget as Ellipse;
             GraphPoint graphPoint = points.Find(p => p.VisualPoint.Equals(point));
-            if (startPoint.ConnectedPoints.Contains(graphPoint))
+            if (endPoint.ConnectedPoints.Contains(graphPoint))
             {
                 MessageBox.Show("Branch already exists", "Error", MessageBoxButton.OK, MessageBoxImage.Error);
                 return;
             }
-            AddBranchToCanvas(graphPoint, startPoint);
+            AddBranchToCanvas(graphPoint, endPoint, 0, 0, GraphBranch.Direction.ToSecond);
 
-            startPoint.VisualPoint.Stroke = Brushes.Black;
-            startPoint = null;
+            endPoint.VisualPoint.Stroke = Brushes.Black;
+            endPoint = null;
         }
         private void ModifyThisPoint_Click(object sender, RoutedEventArgs e)
         {
@@ -938,6 +1075,16 @@ namespace InterfaceForGraphCalculations
             CurrentLoadShowOff.Text = "Current load: " + branchToModify.CurrentLoad;
             MaxLoadShowOff.Text = "Maximum capacity: " + branchToModify.MaximumCapacity;
             ChangeBranchLoadPopup.IsOpen = true;
+        }
+        private void ChangeBranchDirection_Click(object sender, RoutedEventArgs e)
+        {
+            Line line = (((sender as MenuItem).Parent as ContextMenu).Parent as System.Windows.Controls.Primitives.Popup).PlacementTarget as Line;
+            branchToModify = branches.Find(b => b.VisualBranch.Equals(line));
+            ChangeBranchDirectionPopup.IsOpen = true;
+            ToFirstPointDirection.Content = "To Point (" + Math.Round((Canvas.GetLeft(branchToModify.VisualPoint1.VisualPoint) + POINT_RADIUS - coordinatesCenter[0]) / totalZoom, 2)
+                                                + ", " + Math.Round((Canvas.GetBottom(branchToModify.VisualPoint1.VisualPoint) + POINT_RADIUS - coordinatesCenter[1]) / totalZoom, 2) + ")";
+            ToSecondPointDirection.Content = "To Point (" + Math.Round((Canvas.GetLeft(branchToModify.VisualPoint2.VisualPoint) + POINT_RADIUS - coordinatesCenter[0]) / totalZoom, 2)
+                                                + ", " + Math.Round((Canvas.GetBottom(branchToModify.VisualPoint2.VisualPoint) + POINT_RADIUS - coordinatesCenter[1]) / totalZoom, 2) + ")";
         }
 
         private void MainCanvasContextMenu_Opened(object sender, RoutedEventArgs e)
@@ -990,7 +1137,8 @@ namespace InterfaceForGraphCalculations
         {
             PointToModifyComboBox.Items.Clear();
             for (int i = 0; i < points.Count; i++)
-                PointToModifyComboBox.Items.Add("Point " + (i + 1) + "(" + (Canvas.GetLeft(points[i].VisualPoint) + POINT_RADIUS - coordinatesCenter[0]) + ", " + (Canvas.GetBottom(points[i].VisualPoint) + POINT_RADIUS - coordinatesCenter[1]) + ")");
+                PointToModifyComboBox.Items.Add("Point " + (i + 1) + "(" + Math.Round((Canvas.GetLeft(points[i].VisualPoint) + POINT_RADIUS - coordinatesCenter[0]) / totalZoom, 2)
+                                                + ", " + Math.Round((Canvas.GetBottom(points[i].VisualPoint) + POINT_RADIUS - coordinatesCenter[1]) / totalZoom, 2) + ")");
             WhatToModifyPopup.IsOpen = false;
             PointToModifySelectionPopup.IsOpen = true;
         }
@@ -998,8 +1146,10 @@ namespace InterfaceForGraphCalculations
         {
             BranchToModifyComboBox.Items.Clear();
             for (int i = 0; i < branches.Count; i++)
-                BranchToModifyComboBox.Items.Add("Branch " + (i + 1) + "[(" + (Canvas.GetLeft(branches[i].VisualPoint1.VisualPoint) + POINT_RADIUS - coordinatesCenter[0]) + ", " + (Canvas.GetBottom(branches[i].VisualPoint1.VisualPoint) + POINT_RADIUS - coordinatesCenter[1]) + "), " +
-                                                                 "(" + (Canvas.GetLeft(branches[i].VisualPoint2.VisualPoint) + POINT_RADIUS - coordinatesCenter[0]) + ", " + (Canvas.GetBottom(branches[i].VisualPoint2.VisualPoint) + POINT_RADIUS - coordinatesCenter[1]) + ")]");
+                BranchToModifyComboBox.Items.Add("Branch " + (i + 1) + "[(" + Math.Round((Canvas.GetLeft(branches[i].VisualPoint1.VisualPoint) + POINT_RADIUS - coordinatesCenter[0]) / totalZoom, 2) 
+                                                    + ", " + Math.Round((Canvas.GetBottom(branches[i].VisualPoint1.VisualPoint) + POINT_RADIUS - coordinatesCenter[1]) / totalZoom, 2) + "), " +
+                                                                 "(" + Math.Round((Canvas.GetLeft(branches[i].VisualPoint2.VisualPoint) + POINT_RADIUS - coordinatesCenter[0]) / totalZoom, 2) 
+                                                                        + ", " + Math.Round((Canvas.GetBottom(branches[i].VisualPoint2.VisualPoint) + POINT_RADIUS - coordinatesCenter[1]) / totalZoom, 2) + ")]");
             WhatToModifyPopup.IsOpen = false;
             BranchToModifySelectionPopup.IsOpen = true;
         }
@@ -1036,25 +1186,53 @@ namespace InterfaceForGraphCalculations
             }
             ModifyBranchPopup.IsOpen = false;
         }
-
+        private void ChangeBranchLoadButton_Click(object sender, RoutedEventArgs e)
+        {
+            float curLoadDelta;
+            if (float.TryParse(CurrentLoadDelta.Text, out curLoadDelta))
+            {
+                if (branchToModify.CurrentLoad + curLoadDelta > branchToModify.MaximumCapacity ||
+                    branchToModify.CurrentLoad + curLoadDelta < 0) return;
+                SetCurrentLoad(branchToModify, branchToModify.CurrentLoad + curLoadDelta);
+                CurrentLoadShowOff.Text = "Current load: " + branchToModify.CurrentLoad;
+            }
+        }
         private void SetCurrentLoad(GraphBranch branch, float newLoad)
         {
             branch.SetCurrentLoad(newLoad);
             if (GraphProperties.IsChecked)
                 SetBranchesVisualsAccordingToTheirLoads();
         }
+        private void ChangeBranchDirectionButton_Click(object sender, RoutedEventArgs e)
+        {
+            if ((bool)ToBothDirections.IsChecked)
+            {
+                branchToModify.ChangeDirection(GraphBranch.Direction.Both);
+            }
+            else if ((bool)ToFirstPointDirection.IsChecked)
+            {
+                branchToModify.ChangeDirection(GraphBranch.Direction.ToFirst);
+            }
+            else
+            {
+                branchToModify.ChangeDirection(GraphBranch.Direction.ToSecond);
+            }
+            RedrawGraph();
+            ChangeBranchDirectionPopup.IsOpen = false;
+        }
+
 
         private void GraphPropertiesView_Checked(object sender, RoutedEventArgs e)
         {
-            SetBranchesVisualsAccordingToTheirLoads();
             SetPoinsVisualsAccordingToTheirPosition();
+            SetBranchesVisualsAccordingToTheirLoads();
+            RedrawGraph();
         }
         private void SetBranchesVisualsAccordingToTheirLoads()
         {
             foreach (GraphBranch branch in branches)
             {
-                branch.ShowArrowToVisualPoint1();
-                branch.ShowArrowToVisualPoint2();
+                branch.ShowArrows();
                 branch.ShowTextBlock();
                 ColorBranchByLoad(branch);
             }
@@ -1097,14 +1275,13 @@ namespace InterfaceForGraphCalculations
                 branch.ArrowToPoint2.Fill = (Brush)new SolidColorBrush(color);
             }
             else
-                branch.VisualBranch.Stroke = loadedGradientColor;
+                branch.VisualBranch.Stroke = Brushes.Red;
         }
         private void GraphPropertiesView_Unchecked(object sender, RoutedEventArgs e)
         {
             foreach (GraphBranch branch in branches)
             {
-                branch.HideArrowToVisualPoint1();
-                branch.HideArrowToVisualPoint2();
+                branch.HideArrows();
                 branch.HideTextBlock();
                 branch.VisualBranch.Stroke = Brushes.Black;
             }
@@ -1113,18 +1290,6 @@ namespace InterfaceForGraphCalculations
                 point.HideTextBlock();
             }
         }
-        private void ChangeBranchLoadButton_Click(object sender, RoutedEventArgs e)
-        {
-            float curLoadDelta;
-            if (float.TryParse(CurrentLoadDelta.Text, out curLoadDelta))
-            {
-                if (branchToModify.CurrentLoad + curLoadDelta > branchToModify.MaximumCapacity ||
-                    branchToModify.CurrentLoad + curLoadDelta < 0) return;
-                SetCurrentLoad(branchToModify, branchToModify.CurrentLoad + curLoadDelta);
-                CurrentLoadShowOff.Text = "Current load: " + branchToModify.CurrentLoad;
-            }
-        }
-
-
+        
     }
 }

@@ -5,10 +5,7 @@ using System.Data;
 using System.Data.SqlClient;
 using System.Linq;
 using System.Text;
-using System.Threading.Tasks;
-using System.Configuration;
 using System.Windows.Controls;
-using System.Reflection;
 
 namespace InterfaceForGraphCalculations.classes
 {

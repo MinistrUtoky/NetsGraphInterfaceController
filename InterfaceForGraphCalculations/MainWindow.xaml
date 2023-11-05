@@ -56,8 +56,8 @@
             <MenuItem Header="FAQ" Click="FAQ_Click"/>
             <MenuItem Header="Help"/>
         </Menu>
-        <Border Grid.Row="2" Grid.Column="1" BorderBrush="Black" BorderThickness="1">
-            <Canvas HorizontalAlignment="Stretch" VerticalAlignment="Stretch" Name="MainCanvas" ClipToBounds="True" MouseDown="Canvas_MouseDown" MouseUp="">
+        <Border ClipToBounds="True"  Grid.Row="2" Grid.Column="1" BorderBrush="Black" BorderThickness="1">
+            <Canvas HorizontalAlignment="Stretch" VerticalAlignment="Stretch" Name="MainCanvas" ClipToBounds="True" MouseLeftButtonDown="MainCanvas_MouseLeftButtonDown" MouseLeftButtonUp="MainCanvas_MouseLeftButtonUp" MouseWheel="MainCanvas_MouseWheel">
                 <Rectangle Fill="White" Stroke="White" HorizontalAlignment="Stretch" VerticalAlignment="Stretch" ClipToBounds="True" MinWidth="10000" MinHeight="10000"/>
                 <Line Name="YAxis" StrokeThickness="2" Stroke="DarkGray" X1="30" X2="30" Y1="0"/>
                 <Line Name="XAxis" StrokeThickness="2" Stroke="DarkGray" X1="30"/>
@@ -298,6 +298,22 @@
                     <TextBlock Text="Load shift value" Grid.Row="2"/>
                     <TextBox Name="CurrentLoadDelta" Grid.Row="3"/>
                     <Button Grid.Row="4" Grid.ColumnSpan="4" Content="Change" Click="ChangeBranchLoadButton_Click"/>
+                </Grid>
+            </Border>
+        </Popup>
+        <Popup Placement="Center" Name="ChangeBranchDirectionPopup" IsOpen="False" StaysOpen="False" MinWidth="100" MinHeight="100" >
+            <Border BorderBrush="Black" BorderThickness="1">
+                <Grid Background="White">
+                    <Grid.RowDefinitions>
+                        <RowDefinition Height="1*"/>
+                        <RowDefinition Height="1*"/>
+                        <RowDefinition Height="1*"/>
+                        <RowDefinition Height="1*"/>
+                    </Grid.RowDefinitions>
+                    <RadioButton Name="ToBothDirections" GroupName="BranchDirection" Content="Bidirectional" IsChecked="True"/>
+                    <RadioButton Grid.Row="1" Name="ToFirstPointDirection" GroupName="BranchDirection" IsChecked="False"/>
+                    <RadioButton Grid.Row="2" Name="ToSecondPointDirection" GroupName="BranchDirection" IsChecked="False"/>
+                    <Button Grid.Row="3" Grid.ColumnSpan="4" Content="Change" Click="ChangeBranchDirectionButton_Click"/>
                 </Grid>
             </Border>
         </Popup>
