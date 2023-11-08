@@ -40,7 +40,7 @@ namespace InterfaceForGraphCalculations
 
         private List<GraphBranch> branches = new List<GraphBranch>();
 
-        private GraphPoint endPoint;
+        private GraphPoint startPoint;
         private GraphPoint pointToModify;
         private System.Windows.Point canvasContextMenuOpeningPosition;
         private GraphBranch branchToModify;
@@ -50,7 +50,7 @@ namespace InterfaceForGraphCalculations
 
         private Graph mainGraph;
 
-        class GraphPoint
+        public class GraphPoint
         {
             private Graph.Vertex vertex; 
             private Ellipse visualPoint;
@@ -66,6 +66,7 @@ namespace InterfaceForGraphCalculations
             public GraphPoint(Ellipse visualPoint, Graph.Vertex vertex, List<GraphBranch> connectedBranches, List<GraphPoint> connectedPoints)
             {
                 this.visualPoint = visualPoint; this.vertex = vertex; this.connectedBranches = connectedBranches; this.connectedPoints = connectedPoints;
+                this.vertex.SetVisualVertex(this);
             }
             public void AssignTextBlock(TextBlock textBlock)
             {
@@ -74,7 +75,7 @@ namespace InterfaceForGraphCalculations
             public void ShowTextBlock() => pointTextBlock.Visibility = Visibility.Visible;
             public void HideTextBlock() => pointTextBlock.Visibility = Visibility.Hidden;
         }
-        class GraphBranch
+        public class GraphBranch
         {
             private Graph.Edge edge;
             private Line visualBranch;
@@ -111,6 +112,7 @@ namespace InterfaceForGraphCalculations
                 this.visualPoint1 = visualPoint1; this.visualPoint2 = visualPoint2;
                 this.maximumCapacity = maxCapacity; this.currentLoad = currentLoad;
                 this.direction = direction;
+                this.edge.SetVisualEdge(this);
             }
             public void AssignTextBlock(TextBlock textBlock)
             {
@@ -147,8 +149,8 @@ namespace InterfaceForGraphCalculations
 
             public void AssignArrowToVisualPoint1(Polygon arrow) => arrowToPoint1 = arrow;
             public void AssignArrowToVisualPoint2(Polygon arrow) => arrowToPoint2 = arrow;
-            public void ShowArrows() { 
-                if (arrowToPoint1 != null & (direction==Direction.Both || direction==Direction.ToFirst)) 
+            public void ShowArrows() {
+                if (arrowToPoint1 != null & (direction==Direction.Both || direction == Direction.ToFirst)) 
                     arrowToPoint1.Visibility = Visibility.Visible;
                 if (arrowToPoint2 != null & (direction == Direction.Both || direction == Direction.ToSecond))
                     arrowToPoint2.Visibility = Visibility.Visible;
@@ -159,6 +161,13 @@ namespace InterfaceForGraphCalculations
             }
             public void ChangeDirection(Direction newDirection)
             {
+                if (newDirection == Direction.Both) edge.SetDirected(false);
+                else
+                {
+                    edge.SetDirected(true);
+                    if (edge.ToSecond & newDirection == Direction.ToFirst) edge.SwitchDirection();
+                    else if (newDirection == Direction.ToSecond) edge.SwitchDirection();
+                }
                 direction = newDirection;
             }
         }
@@ -177,10 +186,6 @@ namespace InterfaceForGraphCalculations
             //DBClass.Execute_SQL("ALTER TABLE [dbo].[VISUAL_BRANCHES] ADD Point1_Id INTEGER, FOREIGN KEY(Point1_Id) REFERENCES VISUAL_POINTS(POINT_ID);");
             //DBClass.Execute_SQL("ALTER TABLE [dbo].[VISUAL_BRANCHES] ADD Point2_Id INTEGER, FOREIGN KEY(Point2_Id) REFERENCES VISUAL_POINTS(POINT_ID);");
             //DBClass.Execute_SQL("ALTER TABLE [dbo].[VISUAL_BRANCHES] ADD Graph_Id INTEGER, FOREIGN KEY(Graph_Id) REFERENCES VISUAL_GRAPHS(GRAPH_ID);");
-            foreach (UIElement uiElement in MainCanvas.Children)
-            {
-                uiElement.ClipToBounds = true;
-            }
         }
 
         private void Window_SizeChanged(object sender, SizeChangedEventArgs e)
@@ -399,8 +404,8 @@ namespace InterfaceForGraphCalculations
             vectorToVisPoint1 = new System.Windows.Vector(-vectorToVisPoint1.X, vectorToVisPoint1.Y);
             vectorToVisPoint1 = vectorToVisPoint1 * ARROW_LENGTH;
 
-            Polygon arrow2 = CreateArrowTowards(graphBranch.VisualPoint1.VisualPoint, vectorToVisPoint1, graphBranch.VisualBranch.Stroke);
-            Polygon arrow1 = CreateArrowTowards(graphBranch.VisualPoint2.VisualPoint, -vectorToVisPoint1, graphBranch.VisualBranch.Stroke);
+            Polygon arrow1 = CreateArrowTowards(graphBranch.VisualPoint1.VisualPoint, vectorToVisPoint1, graphBranch.VisualBranch.Stroke);
+            Polygon arrow2 = CreateArrowTowards(graphBranch.VisualPoint2.VisualPoint, -vectorToVisPoint1, graphBranch.VisualBranch.Stroke);
 
             graphBranch.AssignArrowToVisualPoint1(arrow1);
             graphBranch.AssignArrowToVisualPoint2(arrow2);
@@ -988,9 +993,9 @@ namespace InterfaceForGraphCalculations
 
         private void PointContextMenu_Opened(object sender, RoutedEventArgs e)
         {
-            if (endPoint != null)
+            if (startPoint != null)
             {
-                if (endPoint.VisualPoint != ((sender as ContextMenu).Parent as System.Windows.Controls.Primitives.Popup).PlacementTarget as Ellipse)
+                if (startPoint.VisualPoint != ((sender as ContextMenu).Parent as System.Windows.Controls.Primitives.Popup).PlacementTarget as Ellipse)
                     ((sender as ContextMenu).Items[2] as MenuItem).IsEnabled = true;
                 else
                     ((sender as ContextMenu).Items[2] as MenuItem).IsEnabled = false;
@@ -1017,25 +1022,25 @@ namespace InterfaceForGraphCalculations
         }
         private void StartHere_Click(object sender, RoutedEventArgs e)
         {
-            if (endPoint != null)
-                endPoint.VisualPoint.Stroke = Brushes.Black;
+            if (startPoint != null)
+                startPoint.VisualPoint.Stroke = Brushes.Black;
             Ellipse point = (((sender as MenuItem).Parent as ContextMenu).Parent as System.Windows.Controls.Primitives.Popup).PlacementTarget as Ellipse;
             point.Stroke = Brushes.Cyan;
-            endPoint = points.Find(p => p.VisualPoint.Equals(point));
+            startPoint = points.Find(p => p.VisualPoint.Equals(point));
         }
         private void EndHere_Click(object sender, RoutedEventArgs e)
         {
             Ellipse point = (((sender as MenuItem).Parent as ContextMenu).Parent as System.Windows.Controls.Primitives.Popup).PlacementTarget as Ellipse;
             GraphPoint graphPoint = points.Find(p => p.VisualPoint.Equals(point));
-            if (endPoint.ConnectedPoints.Contains(graphPoint))
+            if (startPoint.ConnectedPoints.Contains(graphPoint))
             {
                 MessageBox.Show("Branch already exists", "Error", MessageBoxButton.OK, MessageBoxImage.Error);
                 return;
             }
-            AddBranchToCanvas(graphPoint, endPoint, 0, 0, GraphBranch.Direction.ToSecond);
+            AddBranchToCanvas(startPoint, graphPoint, 0, 0, GraphBranch.Direction.ToSecond);
 
-            endPoint.VisualPoint.Stroke = Brushes.Black;
-            endPoint = null;
+            startPoint.VisualPoint.Stroke = Brushes.Black;
+            startPoint = null;
         }
         private void ModifyThisPoint_Click(object sender, RoutedEventArgs e)
         {
@@ -1206,21 +1211,14 @@ namespace InterfaceForGraphCalculations
         private void ChangeBranchDirectionButton_Click(object sender, RoutedEventArgs e)
         {
             if ((bool)ToBothDirections.IsChecked)
-            {
                 branchToModify.ChangeDirection(GraphBranch.Direction.Both);
-            }
             else if ((bool)ToFirstPointDirection.IsChecked)
-            {
                 branchToModify.ChangeDirection(GraphBranch.Direction.ToFirst);
-            }
             else
-            {
                 branchToModify.ChangeDirection(GraphBranch.Direction.ToSecond);
-            }
             RedrawGraph();
             ChangeBranchDirectionPopup.IsOpen = false;
         }
-
 
         private void GraphPropertiesView_Checked(object sender, RoutedEventArgs e)
         {
@@ -1290,6 +1288,40 @@ namespace InterfaceForGraphCalculations
                 point.HideTextBlock();
             }
         }
-        
+
+
+        private void CalculatePath_Click(object sender, RoutedEventArgs e)
+        {
+            CalculatePathPopup.IsOpen = true;
+            FirstPathPointComboBox.Items.Clear();
+            SecondPathPointComboBox.Items.Clear();
+            for (int i = 0; i < points.Count; i++) 
+                FirstPathPointComboBox.Items.Add("Point " + (i + 1) + "(" + Math.Round((Canvas.GetLeft(points[i].VisualPoint) + POINT_RADIUS - coordinatesCenter[0]) / totalZoom, 2)
+                                                    + ", " + Math.Round((Canvas.GetBottom(points[i].VisualPoint) + POINT_RADIUS - coordinatesCenter[1]) / totalZoom, 2) + ")");
+        }
+
+        private void FirstPathPointComboBox_SelectionChanged(object sender, RoutedEventArgs e) => RenewSecondPathPointComboBox();
+        private void RenewSecondPathPointComboBox()
+        {
+            SecondPathPointComboBox.Items.Clear();
+            if (FirstPathPointComboBox.SelectedItem != null)
+            {
+                for (int i = 0; i < points.Count; i++) 
+                    if (i != FirstPathPointComboBox.SelectedIndex)
+                        SecondPathPointComboBox.Items.Add("Point " + (i + 1) + "(" + Math.Round((Canvas.GetLeft(points[i].VisualPoint) + POINT_RADIUS - coordinatesCenter[0]) / totalZoom, 2)
+                                                     + ", " + Math.Round((Canvas.GetBottom(points[i].VisualPoint) + POINT_RADIUS - coordinatesCenter[1]) / totalZoom, 2) + ")");
+            }
+        }
+
+        private void CalculatePathButton_Click(object sender, RoutedEventArgs e)
+        {
+            if (FirstPathPointComboBox.SelectedItem != null & SecondPathPointComboBox.SelectedItem != null)
+            {
+                GraphPoint point1 = points[FirstPathPointComboBox.SelectedIndex];
+                GraphPoint point2 = points[SecondPathPointComboBox.SelectedIndex < FirstPathPointComboBox.SelectedIndex ? SecondPathPointComboBox.SelectedIndex : SecondPathPointComboBox.SelectedIndex + 1];
+                List<Vertex> path =  mainGraph.GetPath(point1.Vertex, point2.Vertex);
+                path.ForEach(v => { v.GetVisualVertex().VisualPoint.Stroke=Brushes.Violet; });
+            }
+        }
     }
 }

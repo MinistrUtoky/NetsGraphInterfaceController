@@ -40,7 +40,7 @@
                 <MenuItem Header="Remove branch" Click="RemoveBranch_Click"/>
             </MenuItem>
             <MenuItem Header="Calculate">
-                <MenuItem Header="Path"/>
+                <MenuItem Header="Path" Click="CalculatePath_Click"/>
                 <MenuItem Header="Paths"/>
             </MenuItem>
             <MenuItem Header="View">
@@ -57,7 +57,8 @@
             <MenuItem Header="Help"/>
         </Menu>
         <Border ClipToBounds="True"  Grid.Row="2" Grid.Column="1" BorderBrush="Black" BorderThickness="1">
-            <Canvas HorizontalAlignment="Stretch" VerticalAlignment="Stretch" Name="MainCanvas" ClipToBounds="True" MouseLeftButtonDown="MainCanvas_MouseLeftButtonDown" MouseLeftButtonUp="MainCanvas_MouseLeftButtonUp" MouseWheel="MainCanvas_MouseWheel">
+            <Canvas HorizontalAlignment="Stretch" VerticalAlignment="Stretch" Name="MainCanvas" ClipToBounds="True" 
+                    MouseLeftButtonDown="MainCanvas_MouseLeftButtonDown" MouseLeftButtonUp="MainCanvas_MouseLeftButtonUp" MouseWheel="MainCanvas_MouseWheel">
                 <Rectangle Fill="White" Stroke="White" HorizontalAlignment="Stretch" VerticalAlignment="Stretch" ClipToBounds="True" MinWidth="10000" MinHeight="10000"/>
                 <Line Name="YAxis" StrokeThickness="2" Stroke="DarkGray" X1="30" X2="30" Y1="0"/>
                 <Line Name="XAxis" StrokeThickness="2" Stroke="DarkGray" X1="30"/>
@@ -314,6 +315,23 @@
                     <RadioButton Grid.Row="1" Name="ToFirstPointDirection" GroupName="BranchDirection" IsChecked="False"/>
                     <RadioButton Grid.Row="2" Name="ToSecondPointDirection" GroupName="BranchDirection" IsChecked="False"/>
                     <Button Grid.Row="3" Grid.ColumnSpan="4" Content="Change" Click="ChangeBranchDirectionButton_Click"/>
+                </Grid>
+            </Border>
+        </Popup>
+        <Popup Placement="Center" x:Name="CalculatePathPopup" IsOpen="False" StaysOpen="False" MinWidth="100" MinHeight="100">
+            <Border BorderBrush="Black" BorderThickness="1">
+                <Grid Background="White">
+                    <Grid.RowDefinitions>
+                        <RowDefinition Height="1*"/>
+                        <RowDefinition Height="1*"/>
+                        <RowDefinition Height="1*"/>
+                        <RowDefinition Height="1*"/>
+                        <RowDefinition Height="1*"/>
+                        <RowDefinition Height="1*"/>
+                    </Grid.RowDefinitions>
+                    <ComboBox Name="FirstPathPointComboBox" SelectionChanged="FirstPathPointComboBox_SelectionChanged" Grid.Row="1"/>
+                    <ComboBox Name="SecondPathPointComboBox" Grid.Row="3"/>
+                    <Button Grid.Row="5" Grid.ColumnSpan="2" Content="Calculate" Click="CalculatePathButton_Click"/>
                 </Grid>
             </Border>
         </Popup>
