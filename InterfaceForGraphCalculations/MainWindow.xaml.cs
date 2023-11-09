@@ -15,9 +15,6 @@ using static InterfaceForGraphCalculations.classes.Graph;
 
 namespace InterfaceForGraphCalculations
 {
-    /// <summary>
-    /// Interaction logic for MainWindow.xaml
-    /// </summary>
     public partial class MainWindow : Window
     {
         private DataWindow dataWindow;
@@ -123,31 +120,20 @@ namespace InterfaceForGraphCalculations
             public void HideTextBlock() => loadTextBlock.Visibility = Visibility.Hidden;
             public void SetMaximumCapacity(float maxCapacity) {
                 maximumCapacity = maxCapacity;
-                edge.SetBandwidth(maxCapacity);
                 if (maxCapacity != 0)
                 {                   
                     loadTextBlock.Text = loadTextBlock.Text = (Math.Round(currentLoad / maximumCapacity, 2) * 100).ToString() + "%";
+                    edge.SetBandwidth(maxCapacity);
                 }
             }
             public void SetCurrentLoad(float load) { 
                 currentLoad = load;
-                edge.AddFlow(load - edge.GetCurrentFlow());
                 if (maximumCapacity != 0) 
                 {
-                    loadTextBlock.Text = (Math.Round(currentLoad / maximumCapacity, 3) * 100).ToString() + "%"; 
+                    loadTextBlock.Text = (Math.Round(currentLoad / maximumCapacity, 3) * 100).ToString() + "%";
+                    edge.AddFlow(load - edge.GetCurrentFlow());
                 } 
             }
-            public void IncreaseLoad(float additionalLoad)
-            {
-                edge.AddFlow(additionalLoad);
-                currentLoad = currentLoad + additionalLoad > maximumCapacity ? maximumCapacity : currentLoad + additionalLoad;
-            }
-            public void DecreaseLoad(float retrievedLoad)
-            {
-                edge.AddFlow(-retrievedLoad);
-                currentLoad = currentLoad - retrievedLoad < 0 ? 0 : currentLoad - retrievedLoad;
-            }
-
             public void AssignArrowToVisualPoint1(Polygon arrow) => arrowToPoint1 = arrow;
             public void AssignArrowToVisualPoint2(Polygon arrow) => arrowToPoint2 = arrow;
             public void ShowArrows() {
@@ -162,12 +148,12 @@ namespace InterfaceForGraphCalculations
             }
             public void ChangeDirection(Direction newDirection)
             {
-                if (newDirection == Direction.Both) edge.SetDirected(false);
+                if (newDirection == Direction.Both) edge.SetIsDirected(false);
                 else
                 {
-                    edge.SetDirected(true);
-                    if (edge.ToSecond & newDirection == Direction.ToFirst) edge.SwitchDirection();
-                    else if (newDirection == Direction.ToSecond) edge.SwitchDirection();
+                    edge.SetIsDirected(true);
+                    if (edge.ToSecond & newDirection == Direction.ToFirst) edge.SetToSecond(true);
+                    else if (newDirection == Direction.ToSecond) edge.SetToSecond(false);
                 }
                 direction = newDirection;
             }
@@ -424,6 +410,8 @@ namespace InterfaceForGraphCalculations
             point2.ConnectedPoints.Add(point1);
             point1.ConnectedBranches.Add(graphBranch);
             point2.ConnectedBranches.Add(graphBranch);
+
+            mainGraph.AddEdge(graphBranch.Edge);
 
             if (GraphProperties.IsChecked)
             {
@@ -696,6 +684,7 @@ namespace InterfaceForGraphCalculations
                 p.ConnectedPoints.Remove(point);
             }
             points.Remove(point);
+            mainGraph.RemoveVertex(point.Vertex);
             MainCanvas.Children.Remove(point.VisualPoint);
             MainCanvas.Children.Remove(point.PointTextBlock);
 
@@ -718,6 +707,7 @@ namespace InterfaceForGraphCalculations
             branch.VisualPoint1.ConnectedPoints.Remove(branch.VisualPoint2);
             branch.VisualPoint2.ConnectedPoints.Remove(branch.VisualPoint1);
             branches.Remove(branch);
+            mainGraph.RemoveEdge(branch.Edge);
             MainCanvas.Children.Remove(branch.LoadTextBlock);
             MainCanvas.Children.Remove(branch.VisualBranch);
             MainCanvas.Children.Remove(branch.ArrowToPoint1);
@@ -1355,11 +1345,13 @@ namespace InterfaceForGraphCalculations
         {
             if (FirstPathPointComboBox.SelectedItem != null & SecondPathPointComboBox.SelectedItem != null)
             {
+                points.ForEach(p => p.VisualPoint.Stroke = Brushes.Black);
                 GraphPoint point1 = points[FirstPathPointComboBox.SelectedIndex];
                 GraphPoint point2 = points[SecondPathPointComboBox.SelectedIndex < FirstPathPointComboBox.SelectedIndex ? SecondPathPointComboBox.SelectedIndex : SecondPathPointComboBox.SelectedIndex + 1];
                 List<Vertex> path =  mainGraph.GetPath(point1.Vertex, point2.Vertex);
-                path.ForEach(v => { v.GetVisualVertex().VisualPoint.Stroke=Brushes.Violet; });
+                path.ForEach(v => v.GetVisualVertex().VisualPoint.Stroke=Brushes.Violet);
             }
+            CalculatePathPopup.IsOpen = false;
         }
 
         private void CanvasPropertiesView_Checked(object sender, RoutedEventArgs e) => graduationGrid.ForEach(g => g.Visibility = Visibility.Visible);

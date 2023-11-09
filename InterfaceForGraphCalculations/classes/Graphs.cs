@@ -34,64 +34,26 @@ namespace InterfaceForGraphCalculations.classes
                 this.index = index;
                 this.visualPoint = visualPoint;
             }
-            public float GetXCoordinate()
-            {
-                return xCoordinate;
-            }
-            public float GetYCoordinate()
-            {
-                return yCoordinate;
-            }
-            public void SetXCoordinate(float xCoordinate)
-            {
-                this.xCoordinate = xCoordinate;
-            }
-            public void SetTCoordinate(float yCoordinate)
-            {
-                this.yCoordinate = yCoordinate;
-            }
+            public float GetXCoordinate() => xCoordinate;
+            public float GetYCoordinate() => yCoordinate;
+            public void SetXCoordinate(float xCoordinate) => this.xCoordinate = xCoordinate;
+            public void SetTCoordinate(float yCoordinate) => this.yCoordinate = yCoordinate;
+            
             public void SetCoordinates(int xCoordinate, int yCoordinate)
             {
                 this.xCoordinate = xCoordinate;
                 this.yCoordinate = yCoordinate;
             }
 
-            public string GetName()
-            {
-                return name;
-            }
-            public void SetName(string name)
-            {
-                this.name = name;
-            }
-            public void SetDataPassthroughModifier(float dataPassthroughModifier)
-            {
-                this.dataPassthroughModifier = dataPassthroughModifier;
-            }
-            public float GetDataPassthroughModifier()
-            {
-                return dataPassthroughModifier;
-            }
-            public double GetDistance(Vertex otherVertex)
-            {
-                return Math.Sqrt(Math.Pow((otherVertex.GetXCoordinate() - this.GetXCoordinate()), 2) + Math.Pow((otherVertex.GetYCoordinate() - this.GetYCoordinate()), 2));
-            }
-            public int GetIndex()
-            {
-                return index;
-            }
-            public void SetIndex(int index)
-            {
-                this.index = index;
-            }
-            public MainWindow.GraphPoint GetVisualVertex()
-            {
-                return visualPoint;
-            }
-            public void SetVisualVertex(MainWindow.GraphPoint gp)
-            {
-                visualPoint = gp;
-            }
+            public string GetName() => name;
+            public void SetName(string name) => this.name = name;
+            public void SetDataPassthroughModifier(float dataPassthroughModifier) => this.dataPassthroughModifier = dataPassthroughModifier;
+            public float GetDataPassthroughModifier() => dataPassthroughModifier;
+            public double GetDistance(Vertex otherVertex) => Math.Sqrt(Math.Pow((otherVertex.GetXCoordinate() - this.GetXCoordinate()), 2) + Math.Pow((otherVertex.GetYCoordinate() - this.GetYCoordinate()), 2));
+            public int GetIndex() => index;
+            public void SetIndex(int index) => this.index = index;           
+            public MainWindow.GraphPoint GetVisualVertex() => visualPoint;
+            public void SetVisualVertex(MainWindow.GraphPoint gp) => visualPoint = gp;
         }
         public class Edge
         {
@@ -106,6 +68,29 @@ namespace InterfaceForGraphCalculations.classes
             private bool toSecond=true;
 
             public bool ToSecond=>toSecond;
+
+            public Vertex GetStartVertex() => startVertex;
+            public Vertex GetEndVertex() => endVertex;
+            public void SetStartVertexNumber(Vertex startVertex) => this.startVertex = startVertex;
+            public void SetEndVertexNumber(Vertex endVertex) => this.endVertex = endVertex;
+            public void SetBandwidth(double maxLoad) => this.Bandwidth = maxLoad;
+            public double GetBandwidth() => Bandwidth;
+            public void AddFlow(double addedLoad)
+            {
+                if (currentFlow + addedLoad <= Bandwidth)
+                    currentFlow += addedLoad;
+            }
+            public void RemoveFlow(double removableLoad)
+            {
+                if (currentFlow >= removableLoad)
+                    currentFlow -= removableLoad;
+            }
+            public double GetCurrentFlow() => currentFlow;
+            public bool GetIsDirected() => isDirected;
+            public void SetIsDirected(bool isDirected) => this.isDirected = isDirected;            
+            public void SetToSecond(bool toSecond) => this.toSecond = toSecond;         
+            public MainWindow.GraphBranch GetVisualEdge() => visualEdge;
+            public void SetVisualEdge(MainWindow.GraphBranch ge) => visualEdge = ge;
             public Edge(Vertex startVertex, Vertex endVertex, double Bandwidth = 0, double currentFlow = 0, bool isDirected = false, MainWindow.GraphBranch graphBranch = null)
             {
                 this.isDirected = isDirected;
@@ -113,64 +98,6 @@ namespace InterfaceForGraphCalculations.classes
                 this.endVertex = endVertex;
                 this.currentFlow = currentFlow;
                 this.Bandwidth = Bandwidth;
-            }
-            public Vertex GetStartVertex()
-            {
-                return startVertex;
-            }
-            public Vertex GetEndVertex()
-            {
-                return endVertex;
-            }
-            public void SetStartVertexNumber(Vertex startVertex)
-            {
-                this.startVertex = startVertex;
-            }
-            public void SetEndVertexNumber(Vertex endVertex)
-            {
-                this.endVertex = endVertex;
-            }
-            public void SetBandwidth(double maxLoad)
-            {
-                this.Bandwidth = maxLoad;
-            }
-            public double GetBandwidth()
-            {
-                return Bandwidth;
-            }
-            public void AddFlow(double addedLoad)
-            {
-                if (currentFlow + addedLoad <= Bandwidth)
-                {
-                    currentFlow += addedLoad;
-                }
-                else
-                {
-                    throw new ArgumentOutOfRangeException("Out of range");
-                }
-            }
-            public void RemoveFlow(double removableLoad)
-            {
-                if (currentFlow >= removableLoad)
-                {
-                    currentFlow -= removableLoad;
-                }
-                else
-                {
-                    throw new ArgumentOutOfRangeException("Out of range");
-                }
-            }
-            public double GetCurrentFlow()
-            {
-                return currentFlow;
-            }
-            public bool GetDirection()
-            {
-                return isDirected;
-            }
-            public void SetDirected(bool isDirected)
-            {
-                
             }
             public void SwitchDirection()
             {
@@ -189,15 +116,6 @@ namespace InterfaceForGraphCalculations.classes
                 }
                 isDirected = false;
             }
-
-            public MainWindow.GraphBranch GetVisualEdge()
-            {
-                return visualEdge;
-            }
-            public void SetVisualEdge(MainWindow.GraphBranch ge)
-            {
-                visualEdge = ge;
-            }
         }
 
         private List<Vertex> vertices;
@@ -213,12 +131,36 @@ namespace InterfaceForGraphCalculations.classes
             20480, 24576,25221, 25600,26214, 32768,40960, 42240, 49152,51200, 54886, 55848, 81920, 98304, 102400,
             126720, 163348, 167567, 204800,307200, 409600,614400 };
 
+        public IEnumerable<Vertex> GetVertices() => vertices;
+        public Vertex GetVertices(int number) => vertices[number];
+        public IEnumerable<Edge> GetEdges() => edges;
+        public Edge GetEdge(int number) => edges[number];
+        public void SetVertexCoordinates(int PointNumber, int x, int y) => vertices[PointNumber].SetCoordinates(x, y);
+        public string GetName() => name;
+        public void SetName(string name) => this.name = name;
+        public double[][] GetAdjacencyMatrix() => adjacencyMatrix;
+        public double[] GetAdjecencyMatrix(int numberOfPoint) => adjacencyMatrix[numberOfPoint];
+        public Vertex GetVertex(int index) => vertices[index];
+        public MainWindow.GraphBranch GetVisualEdge(Edge e) => edges[edges.IndexOf(e)].GetVisualEdge();
+        public MainWindow.GraphPoint GetVisualPoint(Vertex p) => vertices[vertices.IndexOf(p)].GetVisualVertex();
+        public MainWindow.GraphBranch GetVisualEdge(int i) => edges[i].GetVisualEdge();
+        public MainWindow.GraphPoint GetVisualPoint(int i) => vertices[i].GetVisualVertex();
+        public void SetVisualEdge(Edge e, MainWindow.GraphBranch ge) => edges[edges.IndexOf(e)].SetVisualEdge(ge);
+        public void SetVisualPoint(Vertex p, MainWindow.GraphPoint gp) => vertices[vertices.IndexOf(p)].SetVisualVertex(gp);
+        public void SetVisualEdge(int i, MainWindow.GraphBranch ge) => edges[i].SetVisualEdge(ge);
+        public void SetVisualPoint(int i, MainWindow.GraphPoint gp) => vertices[i].SetVisualVertex(gp);
+
         public Graph()
         {
             vertices = new List<Vertex>();
             edges = new List<Edge>();
+            adjacencyMatrix = new double[0][];
+            loadMatrix = new double[0][];
+            dist = new double[0][];
+            prev = new int[0][];
+            tempFlows = new double[0][];
         }
-        public Graph(List<Vertex> vertices = null, double[][] loadMatrix = null, List<Edge> edges = null, string name = "")
+        public Graph(List<Vertex> vertices, List<Edge> edges, double[][] loadMatrix, string name = "")
         {
             this.vertices = vertices;
             this.edges = edges;
@@ -241,62 +183,35 @@ namespace InterfaceForGraphCalculations.classes
                     this.loadMatrix[i][j] = loadMatrix[i][j];
                     adjacencyMatrix[i][j] = 0;
                     tempFlows[i][j] = 0;
-                    prev[i][j] = 0;
+                    prev[i][j] = -1;
                     dist[i][j] = Double.PositiveInfinity;
                 }
 
             }
             foreach (Edge i in edges)
-            {
                 adjacencyMatrix[vertices.IndexOf(i.GetStartVertex())][vertices.IndexOf(i.GetEndVertex())] = 1;
-                if (!i.GetDirection())
-                {
-                    adjacencyMatrix[vertices.IndexOf(i.GetEndVertex())][vertices.IndexOf(i.GetStartVertex())] = 1;
-                }
-            }
             GenerateAllRoutes();
             this.name = name;
         }
         public void AddEdge(Vertex Vertex1, Vertex Vertex2, float maxLoad, bool isDirected, float currentLoad = 0)
         {
-            edges.Append(new Edge(Vertex1, Vertex2, maxLoad, currentLoad, isDirected));
+            edges.Add(new Edge(Vertex1, Vertex2, maxLoad, currentLoad, isDirected));
             ReformAdjacencyMatrix();
             GenerateAllRoutes();
         }
-        public double[][] GetAdjacencyMatrix()
+        public void AddEdge(Edge edge)
         {
-            return adjacencyMatrix;
-        }
-        public double[] GetAdjecencyMatrix(int numberOfPoint)
-        {
-            return adjacencyMatrix[numberOfPoint];
+            edges.Add(edge);
+            ReformAdjacencyMatrix();
+            GenerateAllRoutes();
         }
         public void AddVertex(Vertex newVertex)
         {
-            vertices.Append(newVertex);
+            vertices.Add(newVertex);
             SyncVertexIndex();
         }
-        public List<Vertex> GetVertices()
-        {
-            return vertices;
-        }
-        public Vertex GetVertices(int number)
-        {
-            return vertices[number];
-        }
-        public List<Edge> GetEdges()
-        {
-            return edges;
-        }
-        public Edge GetEdge(int number)
-        {
-            return edges[number];
-        }
-        public void SetVertexCoordinates(int PointNumber, int x, int y)
-        {
-            vertices[PointNumber].SetCoordinates(x, y);
-        }
-        public IEnumerable<Vertex> GetAdjacentVertices(int vertexNumber)
+
+        public List<Vertex> GetAdjacentVertices(int vertexNumber)
         {
             if (vertexNumber < 0 || vertexNumber >= this.vertices.Count()) throw new ArgumentOutOfRangeException("Cannot access vertex");
 
@@ -308,25 +223,10 @@ namespace InterfaceForGraphCalculations.classes
             }
             return adjacentVertices;
         }
-        public string GetName()
-        {
-            return name;
-        }
-        public void SetName(string name)
-        {
-            this.name = name;
-        }
-
-        public double GetShortestPathLength(Vertex vert1, Vertex vert2)
-        {
-            return fastestPathsMatrix[vertices.IndexOf(vert1)][vertices.IndexOf(vert2)];
-        }
-
-
+        public double GetShortestPathLength(Vertex vert1, Vertex vert2) => fastestPathsMatrix[vertices.IndexOf(vert1)][vertices.IndexOf(vert2)];
         private void GenerateAllRoutes()
         {
             for (int i = 0; i < vertices.Count(); i++)
-            {
                 for (int j = 0; j < vertices.Count(); j++)
                 {
                     if (adjacencyMatrix[i][j] != 0)
@@ -340,55 +240,44 @@ namespace InterfaceForGraphCalculations.classes
                         prev[i][j] = i;
                     }
                 }
-            }
             for (int k = 0; k < vertices.Count(); k++)
-            {
                 for (int u = 0; u < vertices.Count(); u++)
-                {
                     for (int v = 0; v < vertices.Count(); v++)
-                    {
                         if (dist[u][v] > dist[u][k] + dist[k][v])
                         {
                             dist[u][v] = dist[u][k] + dist[k][v];
                             prev[u][v] = prev[k][v];
                         }
-                    }
-                }
-            }
         }
         public List<Vertex> GetPath(Vertex vert1, Vertex vert2)
         {
             List<Vertex> path = new List<Vertex>();
-            if (prev[vert1.GetIndex()][vert2.GetIndex()] == 0)
-            {
-                return null;
-            }
+            GenerateAllRoutes();
+            if (prev[vert1.GetIndex()][vert2.GetIndex()] == -1)
+                return path;
+            path.Add(vert1);
             int v = vert1.GetIndex(), u = vert2.GetIndex();
+
             while (u != v)
             {
                 v = prev[u][v];
-                path.Prepend(vertices[v]);
+                path.Add(vertices[v]);
             }
-
+            path.Reverse();
             return path;
         }
-
-
         public void CreateTempFlowsBasedOnPaths()
         {
             foreach (Edge e in edges)
-            {
                 for (int i = 0; i < GetPath(e.GetStartVertex(), e.GetEndVertex()).Count() - 1; i++)
                 {
                     tempFlows[i][i + 1] += loadMatrix[i][i + 1];
-                    if (!e.GetDirection())
+                    if (!e.GetIsDirected())
                     {
                         tempFlows[i + 1][i] += loadMatrix[i][i + 1];
                     }
                 }
-            }
         }
-
         private void SyncVertexIndex()
         {
             int i = 0;
@@ -400,34 +289,27 @@ namespace InterfaceForGraphCalculations.classes
             ReformAdjacencyMatrix();
             GenerateAllRoutes();
         }
-
         public Edge GetEdge(Vertex vert1, Vertex vert2)
         {
             foreach (Edge edge in edges)
-            {
-                if ((!edge.GetDirection() && (edge.GetStartVertex() == vert1 && edge.GetEndVertex() == vert2
+                if ((!edge.GetIsDirected() && (edge.GetStartVertex() == vert1 && edge.GetEndVertex() == vert2
                     || edge.GetStartVertex() == vert2 && edge.GetEndVertex() == vert1))
-                    || (edge.GetDirection() && edge.GetStartVertex() == vert1 && edge.GetEndVertex() == vert2))
+                    || (edge.GetIsDirected() && edge.GetStartVertex() == vert1 && edge.GetEndVertex() == vert2))
                 {
                     return edge;
                 }
-            }
             return null;
         }
         public void RemoveVertex(Vertex vert)
         {
             vertices.Remove(vert);
             foreach (Vertex i in vertices)
-            {
                 if (GetEdge(vert, i) != null)
                 {
                     edges.Remove(GetEdge(vert, i));
                     if (GetEdge(i, vert) != null)
-                    {
                         edges.Remove(GetEdge(i, vert));
-                    }
                 }
-            }
             SyncVertexIndex();
         }
         public void RemoveEdge(Edge edge)
@@ -459,24 +341,29 @@ namespace InterfaceForGraphCalculations.classes
                     {
                         adjacencyMatrix[i][j] = 0;
                         dist[i][j] = Double.PositiveInfinity;
-                        prev[i][j] = 0;
+                        prev[i][j] = -1;
                     }
 
                 }
                 foreach (Edge i in edges)
                 {
-                    adjacencyMatrix[vertices.IndexOf(i.GetStartVertex())][vertices.IndexOf(i.GetEndVertex())] = 1;
-                    if (!i.GetDirection())
+                    if (!i.GetIsDirected())
                     {
+                        adjacencyMatrix[vertices.IndexOf(i.GetStartVertex())][vertices.IndexOf(i.GetEndVertex())] = 1;
                         adjacencyMatrix[vertices.IndexOf(i.GetEndVertex())][vertices.IndexOf(i.GetStartVertex())] = 1;
                     }
+                    else if (!i.ToSecond)
+                        adjacencyMatrix[vertices.IndexOf(i.GetStartVertex())][vertices.IndexOf(i.GetEndVertex())] = 1;
+                    else
+                        adjacencyMatrix[vertices.IndexOf(i.GetEndVertex())][vertices.IndexOf(i.GetStartVertex())] = 1;
                 }
             }
             else
             {
-                adjacencyMatrix = null;
-                dist = null;
-                prev = null;
+                adjacencyMatrix = new double[0][];
+                dist = new double[0][];
+                prev = new int[0][];
+
                 return;
             }
 
@@ -484,19 +371,11 @@ namespace InterfaceForGraphCalculations.classes
         private void SuggestMinimalBandwidthsBasedOnTempLoads()
         {
             for (int i = 0; i < vertices.Count(); i++)
-            {
                 for (int j = 0; j < vertices.Count(); j++)
-                {
                     foreach (int bandwidth in possibleBandwidths)
-                    {
                         if (bandwidth >= tempFlows[i][j])
-                        {
-                            GetEdge(vertices[i], vertices[j]).SetBandwidth(bandwidth);
-                        }
-                    }
-                }
-            }
-            tempFlows = null;
+                            GetEdge(vertices[i], vertices[j]).SetBandwidth(bandwidth);                 
+            tempFlows = new double[0][];
         }
         public void AddBandwidthsToList(double newStandart)
         {
@@ -525,48 +404,10 @@ namespace InterfaceForGraphCalculations.classes
         public void ClearGraph()
         {
             foreach (Vertex v in vertices)
-            {
                 RemoveVertex(v);
-            }
             ReformAdjacencyMatrix();
-            loadMatrix = null;
-            tempFlows = null;
-        }
-        public Vertex GetVertex(int index)
-        {
-            return vertices[index];
-        }
-        public MainWindow.GraphBranch GetVisualEdge(Edge e)
-        {
-            return edges[edges.IndexOf(e)].GetVisualEdge();
-        }
-        public MainWindow.GraphPoint GetVisualPoint(Vertex p)
-        {
-            return vertices[vertices.IndexOf(p)].GetVisualVertex();
-        }
-        public MainWindow.GraphBranch GetVisualEdge(int i)
-        {
-            return edges[i].GetVisualEdge();
-        }
-        public MainWindow.GraphPoint GetVisualPoint(int i)
-        {
-            return vertices[i].GetVisualVertex();
-        }
-        public void SetVisualEdge(Edge e, MainWindow.GraphBranch ge)
-        {
-            edges[edges.IndexOf(e)].SetVisualEdge(ge);
-        }
-        public void SetVisualPoint(Vertex p, MainWindow.GraphPoint gp)
-        {
-            vertices[vertices.IndexOf(p)].SetVisualVertex(gp);
-        }
-        public void SetVisualEdge(int i, MainWindow.GraphBranch ge)
-        {
-            edges[i].SetVisualEdge(ge);
-        }
-        public void SetVisualPoint(int i, MainWindow.GraphPoint gp)
-        {
-            vertices[i].SetVisualVertex(gp);
+            loadMatrix = new double[0][];
+            tempFlows = new double[0][];
         }
         public void ChangeEdgeDirection(Edge e)
         {
@@ -579,16 +420,6 @@ namespace InterfaceForGraphCalculations.classes
             edges[edges.IndexOf(e)].ChangeIsDirected();
             ReformAdjacencyMatrix();
             GenerateAllRoutes();
-        }
-        public List<MainWindow.GraphBranch> GetVisualPath(Vertex vert1, Vertex vert2)
-        {
-            List<Vertex> vertexPaths = GetPath(vert1, vert2);
-            List<MainWindow.GraphBranch> branchesPath = new List<MainWindow.GraphBranch>();
-            for (int i = 0; i < vertexPaths.Count() - 1; i++)
-            {
-                branchesPath.Add(GetEdge(vertexPaths[i], vertexPaths[i + 1]).GetVisualEdge());
-            }
-            return branchesPath;
         }
     }
 }
