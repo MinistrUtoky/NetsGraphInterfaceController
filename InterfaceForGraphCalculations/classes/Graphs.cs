@@ -164,9 +164,13 @@ namespace InterfaceForGraphCalculations.classes
             {
                 return currentFlow;
             }
-            public bool GetDirection()
+            public bool GetIsDirected()
             {
                 return isDirected;
+            }
+            public bool GetDirection()
+            {
+                return toSecond;
             }
             public void SetDirected(bool isDirected)
             {
@@ -248,10 +252,21 @@ namespace InterfaceForGraphCalculations.classes
             }
             foreach (Edge i in edges)
             {
-                adjacencyMatrix[vertices.IndexOf(i.GetStartVertex())][vertices.IndexOf(i.GetEndVertex())] = 1;
-                if (!i.GetDirection())
+                if (i.GetIsDirected())
                 {
-                    adjacencyMatrix[vertices.IndexOf(i.GetEndVertex())][vertices.IndexOf(i.GetStartVertex())] = 1;
+                    if (i.GetDirection())
+                    {
+                        adjacencyMatrix[i.GetStartVertex().GetIndex()][i.GetEndVertex().GetIndex()] = 1;
+                    }
+                    if (!i.GetDirection())
+                    {
+                        adjacencyMatrix[i.GetEndVertex().GetIndex()][i.GetStartVertex().GetIndex()] = 1;
+                    }
+                }
+                else 
+                {
+                    adjacencyMatrix[i.GetStartVertex().GetIndex()][i.GetEndVertex().GetIndex()]= 1;
+                    adjacencyMatrix[i.GetEndVertex().GetIndex()][i.GetStartVertex().GetIndex()] = 1;
                 }
             }
             GenerateAllRoutes();
@@ -381,7 +396,7 @@ namespace InterfaceForGraphCalculations.classes
                 for (int i = 0; i < GetPath(e.GetStartVertex(), e.GetEndVertex()).Count() - 1; i++)
                 {
                     tempFlows[i][i + 1] += loadMatrix[i][i + 1];
-                    if (!e.GetDirection())
+                    if (!e.GetIsDirected())
                     {
                         tempFlows[i + 1][i] += loadMatrix[i][i + 1];
                     }
@@ -405,9 +420,9 @@ namespace InterfaceForGraphCalculations.classes
         {
             foreach (Edge edge in edges)
             {
-                if ((!edge.GetDirection() && (edge.GetStartVertex() == vert1 && edge.GetEndVertex() == vert2
+                if ((!edge.GetIsDirected() && (edge.GetStartVertex() == vert1 && edge.GetEndVertex() == vert2
                     || edge.GetStartVertex() == vert2 && edge.GetEndVertex() == vert1))
-                    || (edge.GetDirection() && edge.GetStartVertex() == vert1 && edge.GetEndVertex() == vert2))
+                    || (edge.GetIsDirected() && edge.GetStartVertex() == vert1 && edge.GetEndVertex() == vert2))
                 {
                     return edge;
                 }
@@ -465,10 +480,21 @@ namespace InterfaceForGraphCalculations.classes
                 }
                 foreach (Edge i in edges)
                 {
-                    adjacencyMatrix[vertices.IndexOf(i.GetStartVertex())][vertices.IndexOf(i.GetEndVertex())] = 1;
-                    if (!i.GetDirection())
+                    if (i.GetIsDirected())
                     {
-                        adjacencyMatrix[vertices.IndexOf(i.GetEndVertex())][vertices.IndexOf(i.GetStartVertex())] = 1;
+                        if (i.GetDirection())
+                        {
+                            adjacencyMatrix[i.GetStartVertex().GetIndex()][i.GetEndVertex().GetIndex()] = 1;
+                        }
+                        if (!i.GetDirection())
+                        {
+                            adjacencyMatrix[i.GetEndVertex().GetIndex()][i.GetStartVertex().GetIndex()] = 1;
+                        }
+                    }
+                    else
+                    {
+                        adjacencyMatrix[i.GetStartVertex().GetIndex()][i.GetEndVertex().GetIndex()] = 1;
+                        adjacencyMatrix[i.GetEndVertex().GetIndex()][i.GetStartVertex().GetIndex()] = 1;
                     }
                 }
             }
