@@ -34,6 +34,7 @@ namespace InterfaceForGraphCalculations
 
         private List<Line> graduation = new List<Line>();
         private List<TextBlock> graduationMarks = new List<TextBlock>();
+        private List<Line> graduationGrid = new List<Line>();
 
         private List<GraphPoint> points = new List<GraphPoint>();
         private List<int> selectedPointUnconnectedIndices = new List<int>();
@@ -204,33 +205,68 @@ namespace InterfaceForGraphCalculations
         {
             foreach (Line l in graduation) MainCanvas.Children.Remove(l);
             foreach (TextBlock tb in graduationMarks) MainCanvas.Children.Remove(tb);
+            foreach (Line l in graduationGrid) MainCanvas.Children.Remove(l);
             graduation.Clear();
             graduationMarks.Clear();
+            graduationGrid.Clear();
 
-            graduationMarks.Add(AddTextToCanvas(coordinatesCenter[0] - 30, coordinatesCenter[1], "0"));
-            graduationMarks.Add(AddTextToCanvas(coordinatesCenter[0], coordinatesCenter[1] - 30, "0"));
-            for (double i = 0; i < Math.Round((Math.Abs(YAxis.Y2 - YAxis.Y1)) / GRADUATION_SCALE_UNIT / totalZoom, 1); i += totalZoom<1? Math.Floor(1 / totalZoom): Math.Round(1 / totalZoom, 2))
+            for (double i = 0; i < Math.Round(Math.Abs(YAxis.Y2 - YAxis.Y1) / GRADUATION_SCALE_UNIT / totalZoom, 1);
+                    i += totalZoom<1? Math.Floor(1 / totalZoom): Math.Round(1 / totalZoom, 2))
             {
-                graduationMarks.Add(AddTextToCanvas(coordinatesCenter[0] - 30,
+                if (coordinatesCenter[0] > 25)
+                {
+                    graduationMarks.Add(AddTextToCanvas(coordinatesCenter[0] - 30,
                                                     coordinatesCenter[1] + i * GRADUATION_SCALE_UNIT * totalZoom, (Math.Round(i * GRADUATION_SCALE_UNIT, 2)).ToString()));
+                }
+                else if (coordinatesCenter[1] + i * GRADUATION_SCALE_UNIT * totalZoom > 30)
+                {
+                    graduationMarks.Add(AddTextToCanvas(0, coordinatesCenter[1] + i * GRADUATION_SCALE_UNIT * totalZoom, 
+                                                        (Math.Round(i * GRADUATION_SCALE_UNIT, 2)).ToString()));
+                }
                 graduation.Add(AddLineToCanvas(coordinatesCenter[0] - 3,
                                                 coordinatesCenter[1] + i * GRADUATION_SCALE_UNIT * totalZoom,
                                                 coordinatesCenter[0] + 3,
                                                 coordinatesCenter[1] + i * GRADUATION_SCALE_UNIT * totalZoom, Brushes.DarkGray));
             }
-            for (double i = 0; i < Math.Round(Math.Abs(XAxis.X2 - XAxis.X1) / GRADUATION_SCALE_UNIT / totalZoom, 1); i += totalZoom < 1 ? Math.Floor(1 / totalZoom) : Math.Round(1 / totalZoom, 2))
-            {                
-                graduationMarks.Add(AddTextToCanvas(coordinatesCenter[0] + i * GRADUATION_SCALE_UNIT * totalZoom,
-                                                    coordinatesCenter[1] - 30, (Math.Round(i * GRADUATION_SCALE_UNIT,2)).ToString()));
+            for (double i = 0; i < Math.Round(Math.Abs(XAxis.X2 - XAxis.X1) / GRADUATION_SCALE_UNIT / totalZoom, 1); 
+                    i += totalZoom < 1 ? Math.Floor(1 / totalZoom) : Math.Round(1 / totalZoom, 2))
+            {
+                if (coordinatesCenter[1] > 25)
+                {
+                    graduationMarks.Add(AddTextToCanvas(coordinatesCenter[0] + i * GRADUATION_SCALE_UNIT * totalZoom,
+                                                        coordinatesCenter[1] - 30, (Math.Round(i * GRADUATION_SCALE_UNIT, 2)).ToString()));
+                }
+                else if (coordinatesCenter[0] + i * GRADUATION_SCALE_UNIT * totalZoom > 30)
+                {
+                    graduationMarks.Add(AddTextToCanvas(coordinatesCenter[0] + i * GRADUATION_SCALE_UNIT * totalZoom,
+                                                        0, (Math.Round(i * GRADUATION_SCALE_UNIT, 2)).ToString()));
+                }
                 graduation.Add(AddLineToCanvas(coordinatesCenter[0] + i * GRADUATION_SCALE_UNIT * totalZoom, coordinatesCenter[1] - 3, 
                                             coordinatesCenter[0] + i * GRADUATION_SCALE_UNIT * totalZoom, coordinatesCenter[1] + 3, Brushes.DarkGray));
             }
-            StringBuilder sb = new StringBuilder();
-            foreach (var g in graduation)
+            if (totalZoom < 0.1 || totalZoom > 50) return;
+            for (double i = 0; i < Math.Round(Math.Abs(YAxis.Y2 - YAxis.Y1) / GRADUATION_SCALE_UNIT / totalZoom, 1); i += 1)
             {
-                sb.Append(g.X1 + " " + g.Y1 + " " + g.X2 + " " + g.Y2 + ";\n");
+                graduationGrid.Add(AddLineToCanvas(0,
+                                                coordinatesCenter[1] + i * GRADUATION_SCALE_UNIT * totalZoom,
+                                                MainCanvas.ActualWidth,
+                                                coordinatesCenter[1] + i * GRADUATION_SCALE_UNIT * totalZoom, Brushes.DarkGray));
+                if (!CanvasPropertiesButton.IsChecked)
+                    graduationGrid[graduationGrid.Count - 1].Visibility = Visibility.Hidden;
+                graduationGrid[graduationGrid.Count - 1].StrokeThickness = 1;
+            }
+            for (double i = 0; i < Math.Round(Math.Abs(XAxis.X2 - XAxis.X1) / GRADUATION_SCALE_UNIT / totalZoom, 1); i += 1)
+            {
+                graduationGrid.Add(AddLineToCanvas(coordinatesCenter[0] + i * GRADUATION_SCALE_UNIT * totalZoom,
+                                                   0,
+                                                   coordinatesCenter[0] + i * GRADUATION_SCALE_UNIT * totalZoom,
+                                                   MainCanvas.ActualHeight, Brushes.DarkGray));
+                if (!CanvasPropertiesButton.IsChecked)
+                    graduationGrid[graduationGrid.Count - 1].Visibility = Visibility.Hidden;
+                graduationGrid[graduationGrid.Count - 1].StrokeThickness = 1;
             }
         }
+
         private void RedrawGraph()
         {
             foreach (var branch in branches)
@@ -274,15 +310,17 @@ namespace InterfaceForGraphCalculations
             coordinatesCenter[1] += -e.GetPosition(MainCanvas).Y + canvasLeftClickPosition.Y;
             XAxis.X2 = XAxis.X1 + MainCanvas.ActualWidth - coordinatesCenter[0];
             YAxis.Y2 = YAxis.Y1 - MainCanvas.ActualHeight + coordinatesCenter[1];
-            RedrawGraph();
             RedrawGraduation();
+            RedrawGraph();
         }
 
         private void MainCanvas_MouseWheel(object sender, MouseWheelEventArgs e)
         {
             double zoom = 0.001f * e.Delta < -1? 1: 1 + 0.001f * e.Delta;
             double xDelta, yDelta, xDeltaZoomed, yDeltaZoomed;
+            if (totalZoom > 50 & zoom > 1) return;
             totalZoom *= zoom;
+
             double mouseX = e.GetPosition(MainCanvas).X;
             double mouseY = MainCanvas.ActualHeight - e.GetPosition(MainCanvas).Y;
 
@@ -1323,5 +1361,8 @@ namespace InterfaceForGraphCalculations
                 path.ForEach(v => { v.GetVisualVertex().VisualPoint.Stroke=Brushes.Violet; });
             }
         }
+
+        private void CanvasPropertiesView_Checked(object sender, RoutedEventArgs e) => graduationGrid.ForEach(g => g.Visibility = Visibility.Visible);
+        private void CanvasPropertiesView_Unchecked(object sender, RoutedEventArgs e) => graduationGrid.ForEach(g => g.Visibility = Visibility.Hidden);
     }
 }

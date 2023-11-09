@@ -44,8 +44,10 @@
                 <MenuItem Header="Paths"/>
             </MenuItem>
             <MenuItem Header="View">
-                <MenuItem Header="Canvas properties" IsCheckable="True" />
-                <MenuItem Header="Graph properties" IsCheckable="True" Name="GraphProperties"  Checked="GraphPropertiesView_Checked" Unchecked="GraphPropertiesView_Unchecked"/>
+                <MenuItem Header="Canvas properties" IsCheckable="True" Name="CanvasPropertiesButton"
+                          Checked="CanvasPropertiesView_Checked" Unchecked="CanvasPropertiesView_Unchecked"/>
+                <MenuItem Header="Graph properties" IsCheckable="True" Name="GraphProperties"  
+                          Checked="GraphPropertiesView_Checked" Unchecked="GraphPropertiesView_Unchecked"/>
             </MenuItem>
             <MenuItem Header="Database">
                 <MenuItem Header="Graphs" Click="GraphsDB_Click"/>
