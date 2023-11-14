@@ -4,11 +4,11 @@
 winexe
 C#
 .cs
-C:\Users\Zilant\source\repos\VityaGraphs\NetsGraphInterfaceController\InterfaceForGraphCalculations\obj\Debug\net6.0-windows\
+C:\Users\Zilant\source\repos\VityaGraphs\NetsGraphInterfaceController\InterfaceForGraphCalculations\obj\Release\net6.0-windows\
 InterfaceForGraphCalculations
 none
 false
-TRACE;DEBUG;NET;NET6_0;NETCOREAPP
+TRACE;RELEASE;NET;NET6_0;NETCOREAPP
 C:\Users\Zilant\source\repos\VityaGraphs\NetsGraphInterfaceController\InterfaceForGraphCalculations\App.xaml
 2-263313276
 

@@ -191,6 +191,7 @@ namespace InterfaceForGraphCalculations.classes
             foreach (Edge i in edges)
                 adjacencyMatrix[vertices.IndexOf(i.GetStartVertex())][vertices.IndexOf(i.GetEndVertex())] = 1;
             GenerateAllRoutes();
+            CreateTempFlowsBasedOnPaths();
             this.name = name;
         }
         public void AddEdge(Vertex Vertex1, Vertex Vertex2, float maxLoad, bool isDirected, float currentLoad = 0)
@@ -198,17 +199,20 @@ namespace InterfaceForGraphCalculations.classes
             edges.Add(new Edge(Vertex1, Vertex2, maxLoad, currentLoad, isDirected));
             ReformAdjacencyMatrix();
             GenerateAllRoutes();
+            CreateTempFlowsBasedOnPaths();
         }
         public void AddEdge(Edge edge)
         {
             edges.Add(edge);
             ReformAdjacencyMatrix();
             GenerateAllRoutes();
+            CreateTempFlowsBasedOnPaths();
         }
         public void AddVertex(Vertex newVertex)
         {
             vertices.Add(newVertex);
             SyncVertexIndex();
+            CreateTempFlowsBasedOnPaths();
         }
 
         public List<Vertex> GetAdjacentVertices(int vertexNumber)
@@ -268,15 +272,13 @@ namespace InterfaceForGraphCalculations.classes
         }
         public void CreateTempFlowsBasedOnPaths()
         {
-            foreach (Edge e in edges)
-                for (int i = 0; i < GetPath(e.GetStartVertex(), e.GetEndVertex()).Count() - 1; i++)
+            for (int i = 0; i < loadMatrix.Length; i++)
+            {
+                for (int j = 0; j < loadMatrix.Length; i++)
                 {
-                    tempFlows[i][i + 1] += loadMatrix[i][i + 1];
-                    if (!e.GetIsDirected())
-                    {
-                        tempFlows[i + 1][i] += loadMatrix[i][i + 1];
-                    }
+                    AddFlow(loadMatrix[i][j], vertices[i], vertices[j]);
                 }
+            }
         }
         private void SyncVertexIndex()
         {
@@ -288,6 +290,7 @@ namespace InterfaceForGraphCalculations.classes
             }
             ReformAdjacencyMatrix();
             GenerateAllRoutes();
+            CreateTempFlowsBasedOnPaths();
         }
         public Edge GetEdge(Vertex vert1, Vertex vert2)
         {
@@ -311,18 +314,21 @@ namespace InterfaceForGraphCalculations.classes
                         edges.Remove(GetEdge(i, vert));
                 }
             SyncVertexIndex();
+            CreateTempFlowsBasedOnPaths();
         }
         public void RemoveEdge(Edge edge)
         {
             edges.Remove(edge);
             ReformAdjacencyMatrix();
             GenerateAllRoutes();
+            CreateTempFlowsBasedOnPaths();
         }
         public void RemoveEdge(Vertex vert1, Vertex vert2)
         {
             edges.Remove(GetEdge(vert1, vert2));
             ReformAdjacencyMatrix();
             GenerateAllRoutes();
+            CreateTempFlowsBasedOnPaths();
             SuggestMinimalBandwidthsBasedOnTempLoads();
         }
         private void ReformAdjacencyMatrix()
@@ -395,6 +401,7 @@ namespace InterfaceForGraphCalculations.classes
         }
         public void AddFlow(double extraFlow, Vertex vert1, Vertex vert2)
         {
+            GenerateAllRoutes();
             List<Vertex> path = GetPath(vert1, vert2);
             for (int i = 0; i < path.Count() - 1; i++)
             {
@@ -414,12 +421,14 @@ namespace InterfaceForGraphCalculations.classes
             edges[edges.IndexOf(e)].SwitchDirection();
             ReformAdjacencyMatrix();
             GenerateAllRoutes();
+            CreateTempFlowsBasedOnPaths();
         }
         public void ChangeIsDirected(Edge e)
         {
             edges[edges.IndexOf(e)].ChangeIsDirected();
             ReformAdjacencyMatrix();
             GenerateAllRoutes();
+            CreateTempFlowsBasedOnPaths();
         }
     }
 }
