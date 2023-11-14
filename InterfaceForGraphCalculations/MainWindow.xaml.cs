@@ -44,13 +44,13 @@ namespace InterfaceForGraphCalculations
         private GraphBranch branchToModify;
 
         private System.Windows.Point canvasLeftClickPosition;
-        private double totalZoom=1f;
+        private double totalZoom = 1f;
 
         private Graph mainGraph;
 
         public class GraphPoint
         {
-            private Graph.Vertex vertex; 
+            private Graph.Vertex vertex;
             private Ellipse visualPoint;
             private List<GraphBranch> connectedBranches;
             private List<GraphPoint> connectedPoints;
@@ -103,10 +103,10 @@ namespace InterfaceForGraphCalculations
             public GraphPoint VisualPoint2 => visualPoint2;
             public float MaximumCapacity => maximumCapacity;
             public float CurrentLoad => currentLoad;
-            public GraphBranch(Line visualBranch, Graph.Edge edge, GraphPoint visualPoint1, GraphPoint visualPoint2, 
+            public GraphBranch(Line visualBranch, Graph.Edge edge, GraphPoint visualPoint1, GraphPoint visualPoint2,
                                 float maxCapacity = 0, float currentLoad = 0, Direction direction = Direction.Both)
             {
-                this.visualBranch = visualBranch; this.edge = edge; 
+                this.visualBranch = visualBranch; this.edge = edge;
                 this.visualPoint1 = visualPoint1; this.visualPoint2 = visualPoint2;
                 this.maximumCapacity = maxCapacity; this.currentLoad = currentLoad;
                 this.direction = direction;
@@ -121,28 +121,28 @@ namespace InterfaceForGraphCalculations
             public void SetMaximumCapacity(float maxCapacity) {
                 maximumCapacity = maxCapacity;
                 if (maxCapacity != 0)
-                {                   
+                {
                     loadTextBlock.Text = loadTextBlock.Text = (Math.Round(currentLoad / maximumCapacity, 2) * 100).ToString() + "%";
                     edge.SetBandwidth(maxCapacity);
                 }
             }
-            public void SetCurrentLoad(float load) { 
+            public void SetCurrentLoad(float load) {
                 currentLoad = load;
-                if (maximumCapacity != 0) 
+                if (maximumCapacity != 0)
                 {
                     loadTextBlock.Text = (Math.Round(currentLoad / maximumCapacity, 3) * 100).ToString() + "%";
                     edge.AddFlow(load - edge.GetCurrentFlow());
-                } 
+                }
             }
             public void AssignArrowToVisualPoint1(Polygon arrow) => arrowToPoint1 = arrow;
             public void AssignArrowToVisualPoint2(Polygon arrow) => arrowToPoint2 = arrow;
             public void ShowArrows() {
-                if (arrowToPoint1 != null & (direction==Direction.Both || direction == Direction.ToFirst)) 
+                if (arrowToPoint1 != null & (direction == Direction.Both || direction == Direction.ToFirst))
                     arrowToPoint1.Visibility = Visibility.Visible;
                 if (arrowToPoint2 != null & (direction == Direction.Both || direction == Direction.ToSecond))
                     arrowToPoint2.Visibility = Visibility.Visible;
             }
-            public void HideArrows() { 
+            public void HideArrows() {
                 if (arrowToPoint1 != null) arrowToPoint1.Visibility = Visibility.Hidden;
                 if (arrowToPoint2 != null) arrowToPoint2.Visibility = Visibility.Hidden;
             }
@@ -197,7 +197,7 @@ namespace InterfaceForGraphCalculations
             graduationGrid.Clear();
 
             for (double i = 0; i < Math.Round(Math.Abs(YAxis.Y2 - YAxis.Y1) / GRADUATION_SCALE_UNIT / totalZoom, 1);
-                    i += totalZoom<1? Math.Floor(1 / totalZoom): Math.Round(1 / totalZoom, 2))
+                    i += totalZoom < 1 ? Math.Floor(1 / totalZoom) : Math.Round(1 / totalZoom, 2))
             {
                 if (coordinatesCenter[0] > 25)
                 {
@@ -206,7 +206,7 @@ namespace InterfaceForGraphCalculations
                 }
                 else if (coordinatesCenter[1] + i * GRADUATION_SCALE_UNIT * totalZoom > 30)
                 {
-                    graduationMarks.Add(AddTextToCanvas(0, coordinatesCenter[1] + i * GRADUATION_SCALE_UNIT * totalZoom, 
+                    graduationMarks.Add(AddTextToCanvas(0, coordinatesCenter[1] + i * GRADUATION_SCALE_UNIT * totalZoom,
                                                         (Math.Round(i * GRADUATION_SCALE_UNIT, 2)).ToString()));
                 }
                 graduation.Add(AddLineToCanvas(coordinatesCenter[0] - 3,
@@ -214,7 +214,7 @@ namespace InterfaceForGraphCalculations
                                                 coordinatesCenter[0] + 3,
                                                 coordinatesCenter[1] + i * GRADUATION_SCALE_UNIT * totalZoom, Brushes.DarkGray));
             }
-            for (double i = 0; i < Math.Round(Math.Abs(XAxis.X2 - XAxis.X1) / GRADUATION_SCALE_UNIT / totalZoom, 1); 
+            for (double i = 0; i < Math.Round(Math.Abs(XAxis.X2 - XAxis.X1) / GRADUATION_SCALE_UNIT / totalZoom, 1);
                     i += totalZoom < 1 ? Math.Floor(1 / totalZoom) : Math.Round(1 / totalZoom, 2))
             {
                 if (coordinatesCenter[1] > 25)
@@ -227,7 +227,7 @@ namespace InterfaceForGraphCalculations
                     graduationMarks.Add(AddTextToCanvas(coordinatesCenter[0] + i * GRADUATION_SCALE_UNIT * totalZoom,
                                                         0, (Math.Round(i * GRADUATION_SCALE_UNIT, 2)).ToString()));
                 }
-                graduation.Add(AddLineToCanvas(coordinatesCenter[0] + i * GRADUATION_SCALE_UNIT * totalZoom, coordinatesCenter[1] - 3, 
+                graduation.Add(AddLineToCanvas(coordinatesCenter[0] + i * GRADUATION_SCALE_UNIT * totalZoom, coordinatesCenter[1] - 3,
                                             coordinatesCenter[0] + i * GRADUATION_SCALE_UNIT * totalZoom, coordinatesCenter[1] + 3, Brushes.DarkGray));
             }
             if (totalZoom < 0.1 || totalZoom > 50) return;
@@ -236,20 +236,22 @@ namespace InterfaceForGraphCalculations
                 graduationGrid.Add(AddLineToCanvas(0,
                                                 coordinatesCenter[1] + i * GRADUATION_SCALE_UNIT * totalZoom,
                                                 MainCanvas.ActualWidth,
-                                                coordinatesCenter[1] + i * GRADUATION_SCALE_UNIT * totalZoom, Brushes.DarkGray));
+                                                coordinatesCenter[1] + i * GRADUATION_SCALE_UNIT * totalZoom, Brushes.LightGray));
                 if (!CanvasPropertiesButton.IsChecked)
                     graduationGrid[graduationGrid.Count - 1].Visibility = Visibility.Hidden;
                 graduationGrid[graduationGrid.Count - 1].StrokeThickness = 1;
+                Canvas.SetZIndex(graduationGrid[graduationGrid.Count - 1], 0);
             }
             for (double i = 0; i < Math.Round(Math.Abs(XAxis.X2 - XAxis.X1) / GRADUATION_SCALE_UNIT / totalZoom, 1); i += 1)
             {
                 graduationGrid.Add(AddLineToCanvas(coordinatesCenter[0] + i * GRADUATION_SCALE_UNIT * totalZoom,
                                                    0,
                                                    coordinatesCenter[0] + i * GRADUATION_SCALE_UNIT * totalZoom,
-                                                   MainCanvas.ActualHeight, Brushes.DarkGray));
+                                                   MainCanvas.ActualHeight, Brushes.LightGray));
                 if (!CanvasPropertiesButton.IsChecked)
                     graduationGrid[graduationGrid.Count - 1].Visibility = Visibility.Hidden;
                 graduationGrid[graduationGrid.Count - 1].StrokeThickness = 1;
+                Canvas.SetZIndex(graduationGrid[graduationGrid.Count - 1], 0);
             }
         }
 
@@ -263,7 +265,7 @@ namespace InterfaceForGraphCalculations
                 CreateBranchArrows(branch);
                 if (GraphProperties.IsChecked)
                 {
-                    ColorBranchByLoad(branch); 
+                    ColorBranchByLoad(branch);
                     branch.ShowTextBlock();
                     branch.ShowArrows();
                 }
@@ -302,7 +304,7 @@ namespace InterfaceForGraphCalculations
 
         private void MainCanvas_MouseWheel(object sender, MouseWheelEventArgs e)
         {
-            double zoom = 0.001f * e.Delta < -1? 1: 1 + 0.001f * e.Delta;
+            double zoom = 0.001f * e.Delta < -1 ? 1 : 1 + 0.001f * e.Delta;
             double xDelta, yDelta, xDeltaZoomed, yDeltaZoomed;
             if (totalZoom > 50 & zoom > 1) return;
             totalZoom *= zoom;
@@ -313,7 +315,7 @@ namespace InterfaceForGraphCalculations
             foreach (GraphPoint point in points)
             {
                 ModifyPointPosition(point, mouseX - zoom * (mouseX - (Canvas.GetLeft(point.VisualPoint)) - POINT_RADIUS) - coordinatesCenter[0],
-                                            mouseY - zoom * (mouseY - (Canvas.GetBottom(point.VisualPoint)) - POINT_RADIUS) - coordinatesCenter[1] );
+                                            mouseY - zoom * (mouseY - (Canvas.GetBottom(point.VisualPoint)) - POINT_RADIUS) - coordinatesCenter[1]);
             }
             coordinatesCenter[0] = mouseX - zoom * (mouseX - coordinatesCenter[0]);
             coordinatesCenter[1] = mouseY - zoom * (mouseY - coordinatesCenter[1]);
@@ -391,12 +393,12 @@ namespace InterfaceForGraphCalculations
             pointTextBlock.Text = "(" + Math.Round((Canvas.GetLeft(graphPoint.VisualPoint) + POINT_RADIUS - coordinatesCenter[0]) / totalZoom, 2)
                                     + " " + Math.Round((Canvas.GetBottom(graphPoint.VisualPoint) + POINT_RADIUS - coordinatesCenter[1]) / totalZoom, 2) + ")";
             graphPoint.AssignTextBlock(pointTextBlock);
-            
+
         }
         private void AddBranchToCanvas(GraphPoint point1, GraphPoint point2, float maxLoad, float currentLoad, GraphBranch.Direction direction)
         {
-            GraphBranch graphBranch = new GraphBranch(AddLineToCanvas(point1, point2, Brushes.Black), 
-                                    new Graph.Edge(point1.Vertex, point2.Vertex, maxLoad, currentLoad, direction!=GraphBranch.Direction.Both), 
+            GraphBranch graphBranch = new GraphBranch(AddLineToCanvas(point1, point2, Brushes.Black),
+                                    new Graph.Edge(point1.Vertex, point2.Vertex, maxLoad, currentLoad, direction != GraphBranch.Direction.Both),
                                                         point1, point2, maxLoad, currentLoad, direction);
 
             CreateBranchContextMenu(graphBranch);
@@ -477,7 +479,7 @@ namespace InterfaceForGraphCalculations
                 Canvas.GetLeft(graphBranch.VisualPoint2.VisualPoint)
                 + (Canvas.GetLeft(graphBranch.VisualPoint1.VisualPoint) - Canvas.GetLeft(graphBranch.VisualPoint2.VisualPoint)) / 2);
             Canvas.SetZIndex(loadTextBlock, 3);
-            loadTextBlock.Text = graphBranch.MaximumCapacity==0? "100%": Math.Round(graphBranch.CurrentLoad/graphBranch.MaximumCapacity*100, 2) + "%";
+            loadTextBlock.Text = graphBranch.MaximumCapacity == 0 ? "100%" : Math.Round(graphBranch.CurrentLoad / graphBranch.MaximumCapacity * 100, 2) + "%";
             graphBranch.AssignTextBlock(loadTextBlock);
         }
         private void CreateBranchContextMenu(GraphBranch graphBranch)
@@ -607,7 +609,7 @@ namespace InterfaceForGraphCalculations
 
             GraphBranch[] connectedBranches = new GraphBranch[graphPoint.ConnectedBranches.Count];
             graphPoint.ConnectedBranches.CopyTo(connectedBranches);
-                        
+
             while (graphPoint.ConnectedBranches.Count != 0)
                 RemoveBranch(graphPoint.ConnectedBranches[0]);
 
@@ -795,8 +797,8 @@ namespace InterfaceForGraphCalculations
                 graphInfo.Append(GraphNameCSV.Text + ";" + GraphDescriptionCSV.Text + "\n");
                 graphInfo.Append("---\n");
                 foreach (GraphPoint point in points)
-                    graphInfo.Append(Math.Round((Canvas.GetLeft(point.VisualPoint) + POINT_RADIUS - coordinatesCenter[0])/totalZoom, 2).ToString()
-                                           + ";" + Math.Round((Canvas.GetBottom(point.VisualPoint) + POINT_RADIUS - coordinatesCenter[1]) / totalZoom,2).ToString() + "\n");
+                    graphInfo.Append(Math.Round((Canvas.GetLeft(point.VisualPoint) + POINT_RADIUS - coordinatesCenter[0]) / totalZoom, 2).ToString()
+                                           + ";" + Math.Round((Canvas.GetBottom(point.VisualPoint) + POINT_RADIUS - coordinatesCenter[1]) / totalZoom, 2).ToString() + "\n");
                 graphInfo.Append("---");
                 foreach (GraphBranch branch in branches)
                     graphInfo.Append("\n" + points.IndexOf(branch.VisualPoint1) + ";" + points.IndexOf(branch.VisualPoint2));
@@ -1004,7 +1006,7 @@ namespace InterfaceForGraphCalculations
             foreach (int pointID in pointIDs)
             {
                 pointDT = DBClass.Get_DataTable("SELECT * FROM VISUAL_POINTS WHERE POINT_ID='" + pointID + "';");
-                AddPointToCanvas((double)pointDT.Rows[0].ItemArray[1]*totalZoom, (double)pointDT.Rows[0].ItemArray[2] * totalZoom);
+                AddPointToCanvas((double)pointDT.Rows[0].ItemArray[1] * totalZoom, (double)pointDT.Rows[0].ItemArray[2] * totalZoom);
             }
         }
         private void AddBranchesFromDB(List<int> branchIDs, List<int> pointIDs)
@@ -1179,9 +1181,9 @@ namespace InterfaceForGraphCalculations
         {
             BranchToModifyComboBox.Items.Clear();
             for (int i = 0; i < branches.Count; i++)
-                BranchToModifyComboBox.Items.Add("Branch " + (i + 1) + "[(" + Math.Round((Canvas.GetLeft(branches[i].VisualPoint1.VisualPoint) + POINT_RADIUS - coordinatesCenter[0]) / totalZoom, 2) 
+                BranchToModifyComboBox.Items.Add("Branch " + (i + 1) + "[(" + Math.Round((Canvas.GetLeft(branches[i].VisualPoint1.VisualPoint) + POINT_RADIUS - coordinatesCenter[0]) / totalZoom, 2)
                                                     + ", " + Math.Round((Canvas.GetBottom(branches[i].VisualPoint1.VisualPoint) + POINT_RADIUS - coordinatesCenter[1]) / totalZoom, 2) + "), " +
-                                                                 "(" + Math.Round((Canvas.GetLeft(branches[i].VisualPoint2.VisualPoint) + POINT_RADIUS - coordinatesCenter[0]) / totalZoom, 2) 
+                                                                 "(" + Math.Round((Canvas.GetLeft(branches[i].VisualPoint2.VisualPoint) + POINT_RADIUS - coordinatesCenter[0]) / totalZoom, 2)
                                                                         + ", " + Math.Round((Canvas.GetBottom(branches[i].VisualPoint2.VisualPoint) + POINT_RADIUS - coordinatesCenter[1]) / totalZoom, 2) + ")]");
             WhatToModifyPopup.IsOpen = false;
             BranchToModifySelectionPopup.IsOpen = true;
@@ -1323,7 +1325,7 @@ namespace InterfaceForGraphCalculations
             CalculatePathPopup.IsOpen = true;
             FirstPathPointComboBox.Items.Clear();
             SecondPathPointComboBox.Items.Clear();
-            for (int i = 0; i < points.Count; i++) 
+            for (int i = 0; i < points.Count; i++)
                 FirstPathPointComboBox.Items.Add("Point " + (i + 1) + "(" + Math.Round((Canvas.GetLeft(points[i].VisualPoint) + POINT_RADIUS - coordinatesCenter[0]) / totalZoom, 2)
                                                     + ", " + Math.Round((Canvas.GetBottom(points[i].VisualPoint) + POINT_RADIUS - coordinatesCenter[1]) / totalZoom, 2) + ")");
         }
@@ -1334,7 +1336,7 @@ namespace InterfaceForGraphCalculations
             SecondPathPointComboBox.Items.Clear();
             if (FirstPathPointComboBox.SelectedItem != null)
             {
-                for (int i = 0; i < points.Count; i++) 
+                for (int i = 0; i < points.Count; i++)
                     if (i != FirstPathPointComboBox.SelectedIndex)
                         SecondPathPointComboBox.Items.Add("Point " + (i + 1) + "(" + Math.Round((Canvas.GetLeft(points[i].VisualPoint) + POINT_RADIUS - coordinatesCenter[0]) / totalZoom, 2)
                                                      + ", " + Math.Round((Canvas.GetBottom(points[i].VisualPoint) + POINT_RADIUS - coordinatesCenter[1]) / totalZoom, 2) + ")");
@@ -1348,13 +1350,20 @@ namespace InterfaceForGraphCalculations
                 points.ForEach(p => p.VisualPoint.Stroke = Brushes.Black);
                 GraphPoint point1 = points[FirstPathPointComboBox.SelectedIndex];
                 GraphPoint point2 = points[SecondPathPointComboBox.SelectedIndex < FirstPathPointComboBox.SelectedIndex ? SecondPathPointComboBox.SelectedIndex : SecondPathPointComboBox.SelectedIndex + 1];
-                List<Vertex> path =  mainGraph.GetPath(point1.Vertex, point2.Vertex);
-                path.ForEach(v => v.GetVisualVertex().VisualPoint.Stroke=Brushes.Violet);
+                List<Vertex> path = mainGraph.GetPath(point1.Vertex, point2.Vertex);
+                path.ForEach(v => {
+                    v.GetVisualVertex().VisualPoint.Stroke = Brushes.Blue;
+                });
             }
             CalculatePathPopup.IsOpen = false;
         }
 
         private void CanvasPropertiesView_Checked(object sender, RoutedEventArgs e) => graduationGrid.ForEach(g => g.Visibility = Visibility.Visible);
         private void CanvasPropertiesView_Unchecked(object sender, RoutedEventArgs e) => graduationGrid.ForEach(g => g.Visibility = Visibility.Hidden);
+        private void MakeBandwidthsInfinite_Click(object sender, RoutedEventArgs e)
+        {
+            branches.ForEach(branch => branch.SetMaximumCapacity(float.MaxValue));
+            RedrawGraph();
+        }
     }
 }

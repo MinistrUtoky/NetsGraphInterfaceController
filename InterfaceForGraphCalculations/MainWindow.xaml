@@ -21,6 +21,8 @@
             <RowDefinition Height="1*"/>
         </Grid.RowDefinitions>
         <Menu Height="20" VerticalAlignment="Top" Grid.ColumnSpan="10">
+            <MenuItem Header="⚙︎Settings">
+            </MenuItem>
             <MenuItem Header="File">
                 <MenuItem Header="New graph" Click="NewGraph_Click"/>
                 <MenuItem Header="Save to..">
@@ -74,6 +76,7 @@
         <StackPanel Grid.Column="3" Grid.Row="2">
             <Button Content="Add new point" Click="AddNewPoint_Click"/>
             <Button Content="Add new branch" Click="AddNewBranch_Click"/>
+            <Button Content="Infinite bandwidths" Click="MakeBandwidthsInfinite_Click"/>
         </StackPanel>
         <Popup Placement="Center" x:Name="NewGraphPopup" IsOpen="False" MinWidth="100" MinHeight="50">
             <Border BorderBrush="Black" BorderThickness="1">

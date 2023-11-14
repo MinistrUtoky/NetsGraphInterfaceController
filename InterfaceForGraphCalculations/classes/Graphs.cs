@@ -128,7 +128,7 @@ namespace InterfaceForGraphCalculations.classes
         private double[][] tempFlows;
         private string name;
         private List<double> possibleBandwidths = new List<double>{ 2560, 3686, 4096, 5120, 8192, 10240, 10557, 13107, 13967, 16384,
-            20480, 24576,25221, 25600,26214, 32768,40960, 42240, 49152,51200, 54886, 55848, 81920, 98304, 102400,
+            20480, 24576,25221, 25600,26214, 32768, 40960, 42240, 49152,51200, 54886, 55848, 81920, 98304, 102400,
             126720, 163348, 167567, 204800,307200, 409600,614400 };
 
         public IEnumerable<Vertex> GetVertices() => vertices;
@@ -190,29 +190,25 @@ namespace InterfaceForGraphCalculations.classes
             }
             foreach (Edge i in edges)
                 adjacencyMatrix[vertices.IndexOf(i.GetStartVertex())][vertices.IndexOf(i.GetEndVertex())] = 1;
-            GenerateAllRoutes();
-            CreateTempFlowsBasedOnPaths();
+            GenerateAllRoutes(); CreateTempFlowsBasedOnPaths();
             this.name = name;
         }
         public void AddEdge(Vertex Vertex1, Vertex Vertex2, float maxLoad, bool isDirected, float currentLoad = 0)
         {
             edges.Add(new Edge(Vertex1, Vertex2, maxLoad, currentLoad, isDirected));
             ReformAdjacencyMatrix();
-            GenerateAllRoutes();
-            CreateTempFlowsBasedOnPaths();
+            GenerateAllRoutes(); CreateTempFlowsBasedOnPaths();
         }
         public void AddEdge(Edge edge)
         {
             edges.Add(edge);
             ReformAdjacencyMatrix();
             GenerateAllRoutes();
-            CreateTempFlowsBasedOnPaths();
         }
         public void AddVertex(Vertex newVertex)
         {
             vertices.Add(newVertex);
-            SyncVertexIndex();
-            CreateTempFlowsBasedOnPaths();
+            SyncVertexIndex(); 
         }
 
         public List<Vertex> GetAdjacentVertices(int vertexNumber)
@@ -257,14 +253,14 @@ namespace InterfaceForGraphCalculations.classes
         {
             List<Vertex> path = new List<Vertex>();
             GenerateAllRoutes();
-            if (prev[vert1.GetIndex()][vert2.GetIndex()] == -1)
-                return path;
             path.Add(vert1);
             int v = vert1.GetIndex(), u = vert2.GetIndex();
-
+            if (prev[u][v] == -1)
+                return path;
             while (u != v)
             {
                 v = prev[u][v];
+                if (v == -1) return new List<Vertex>();
                 path.Add(vertices[v]);
             }
             path.Reverse();
@@ -289,8 +285,7 @@ namespace InterfaceForGraphCalculations.classes
                 i++;
             }
             ReformAdjacencyMatrix();
-            GenerateAllRoutes();
-            CreateTempFlowsBasedOnPaths();
+            GenerateAllRoutes(); CreateTempFlowsBasedOnPaths();
         }
         public Edge GetEdge(Vertex vert1, Vertex vert2)
         {
@@ -314,21 +309,18 @@ namespace InterfaceForGraphCalculations.classes
                         edges.Remove(GetEdge(i, vert));
                 }
             SyncVertexIndex();
-            CreateTempFlowsBasedOnPaths();
         }
         public void RemoveEdge(Edge edge)
         {
             edges.Remove(edge);
             ReformAdjacencyMatrix();
-            GenerateAllRoutes();
-            CreateTempFlowsBasedOnPaths();
+            GenerateAllRoutes(); CreateTempFlowsBasedOnPaths();
         }
         public void RemoveEdge(Vertex vert1, Vertex vert2)
         {
             edges.Remove(GetEdge(vert1, vert2));
             ReformAdjacencyMatrix();
-            GenerateAllRoutes();
-            CreateTempFlowsBasedOnPaths();
+            GenerateAllRoutes(); CreateTempFlowsBasedOnPaths();
             SuggestMinimalBandwidthsBasedOnTempLoads();
         }
         private void ReformAdjacencyMatrix()
@@ -369,7 +361,6 @@ namespace InterfaceForGraphCalculations.classes
                 adjacencyMatrix = new double[0][];
                 dist = new double[0][];
                 prev = new int[0][];
-
                 return;
             }
 
@@ -420,15 +411,13 @@ namespace InterfaceForGraphCalculations.classes
         {
             edges[edges.IndexOf(e)].SwitchDirection();
             ReformAdjacencyMatrix();
-            GenerateAllRoutes();
-            CreateTempFlowsBasedOnPaths();
+            GenerateAllRoutes(); CreateTempFlowsBasedOnPaths();
         }
         public void ChangeIsDirected(Edge e)
         {
             edges[edges.IndexOf(e)].ChangeIsDirected();
             ReformAdjacencyMatrix();
-            GenerateAllRoutes();
-            CreateTempFlowsBasedOnPaths();
+            GenerateAllRoutes(); CreateTempFlowsBasedOnPaths();
         }
     }
 }
