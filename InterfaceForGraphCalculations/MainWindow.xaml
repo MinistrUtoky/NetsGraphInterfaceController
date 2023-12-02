@@ -77,6 +77,9 @@
             <Button Content="Add new branch" Click="AddNewBranch_Click"/>
             <Button Content="Infinite bandwidths" Click="MakeBandwidthsInfinite_Click"/>
             <Button Content="Fill load matrix" Click="FillLoadMatrix_Click"/>
+            <Button Content="Average delay" Click="AverageDelay_Click"/>
+            <Button Content="Max delay" Click="MaxDelay_Click"/>
+            <TextBlock TextWrapping="Wrap" Name="InfoField"></TextBlock>
         </StackPanel>
         <Popup Placement="Center" x:Name="NewGraphPopup" IsOpen="False" MinWidth="100" MinHeight="50">
             <Border BorderBrush="Black" BorderThickness="1">

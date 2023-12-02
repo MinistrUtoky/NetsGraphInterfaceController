@@ -12,6 +12,7 @@ using System.Drawing;
 using static InterfaceForGraphCalculations.MainWindow.GraphPoint;
 using static InterfaceForGraphCalculations.MainWindow.GraphBranch;
 using System.Windows.Shapes;
+//using MathNet.Numerics.Distributions;
 
 namespace InterfaceForGraphCalculations.classes
 {
@@ -64,6 +65,8 @@ namespace InterfaceForGraphCalculations.classes
             private Vertex startVertex;
             private Vertex endVertex;
             private MainWindow.GraphBranch visualEdge;
+            private double mu=1; //Needed for the delay calculations later, better ask Gostev
+            private double messageIntensity=1; //Per second
 
             private bool isDirected;
             private bool toSecond=true;
@@ -90,6 +93,10 @@ namespace InterfaceForGraphCalculations.classes
             public void SetToSecond(bool toSecond) => this.toSecond = toSecond;         
             public MainWindow.GraphBranch GetVisualEdge() => visualEdge;
             public void SetVisualEdge(MainWindow.GraphBranch ge) => visualEdge = ge;
+            public double GetDelay()
+            {
+                return (double)(1 / mu * ((Bandwidth * 1048576) - (messageIntensity / mu)));
+            }
             public Edge(Vertex startVertex, Vertex endVertex, double Bandwidth = 0, double currentFlow = 0, 
                         bool isDirected = false, MainWindow.GraphBranch graphBranch = null)
             {
@@ -378,6 +385,27 @@ namespace InterfaceForGraphCalculations.classes
             ReformAdjacencyMatrix();
             loadMatrix = new double[0][];
             tempFlows = new double[0][];
+        }
+        public double GetAverageDelay()
+        {
+            double delaySum=0.0;
+            foreach(Edge e in edges)
+            {
+                delaySum += e.GetDelay();
+            }
+            return delaySum/edges.Count;
+        }
+        public double GetMaxDelay()
+        {
+            double maxDelay = 0.0;
+            foreach (Edge e in edges)
+            {
+                if (e.GetDelay() > maxDelay)
+                {
+                    maxDelay = e.GetDelay();
+                }
+            }
+            return maxDelay;
         }
     }
 }

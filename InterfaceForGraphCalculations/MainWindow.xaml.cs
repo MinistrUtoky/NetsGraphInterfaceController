@@ -14,6 +14,7 @@ using System.Windows.Input;
 using System.Windows.Media;
 using System.Windows.Shapes;
 using static InterfaceForGraphCalculations.classes.Graph;
+using static InterfaceForGraphCalculations.MainWindow;
 using static InterfaceForGraphCalculations.MainWindow.GraphBranch;
 
 namespace InterfaceForGraphCalculations
@@ -1492,7 +1493,7 @@ namespace InterfaceForGraphCalculations
                 LoadMatrixGridScroller.MaxWidth = MainCanvas.ActualWidth * (1 + 1 / points.Count);
                 LoadMatrixGridScroller.MaxHeight = MainCanvas.ActualHeight * (1 + 1 / points.Count);
 
-                for (int i = 0; i < points.Count; i++)
+                for (int i = 0; i < points.Count+1; i++)
                 {
                     LoadMatrixGrid.ColumnDefinitions.Add(new ColumnDefinition()
                     {
@@ -1502,6 +1503,40 @@ namespace InterfaceForGraphCalculations
                     { 
                         Height = new GridLength(1, GridUnitType.Star)
                     });
+                }
+                for (int i = 0; i < points.Count * points.Count; i++)
+                {
+                    if (i % points.Count == 0)
+                    {
+                        TextBlock tBlock1 = new TextBlock()
+                        {
+                            TextWrapping = TextWrapping.Wrap,
+                            TextAlignment = TextAlignment.Center,
+                            MinHeight = 36,
+                            MinWidth = 64,
+                            MaxWidth = 128,
+                            MaxHeight = 36,
+                            Text = "(" + Math.Round((Canvas.GetLeft(points[i / points.Count].VisualPoint) + POINT_RADIUS - coordinatesCenter[0]) / totalZoom, 2)
+                                    + " " + Math.Round((Canvas.GetBottom(points[i / points.Count].VisualPoint) + POINT_RADIUS - coordinatesCenter[1]) / totalZoom, 2) + ")"
+                        },
+                        tBlock2 = new TextBlock()
+                        {
+                            TextWrapping = TextWrapping.Wrap,
+                            TextAlignment = TextAlignment.Center,
+                            MinHeight = 36,
+                            MinWidth = 64,
+                            MaxWidth = 128,
+                            MaxHeight = 36,
+                            Text = "(" + Math.Round((Canvas.GetLeft(points[i / points.Count].VisualPoint) + POINT_RADIUS - coordinatesCenter[0]) / totalZoom, 2)
+                                    + " " + Math.Round((Canvas.GetBottom(points[i / points.Count].VisualPoint) + POINT_RADIUS - coordinatesCenter[1]) / totalZoom, 2) + ")"
+                        };
+                        Grid.SetColumn(tBlock1, 0);
+                        Grid.SetRow(tBlock1, i / points.Count + 1);
+                        Grid.SetColumn(tBlock2, i / points.Count + 1);
+                        Grid.SetRow(tBlock2, 0);
+                        LoadMatrixGrid.Children.Add(tBlock1);
+                        LoadMatrixGrid.Children.Add(tBlock2);
+                    }
                 }
                 for (int i = 0; i < points.Count*points.Count; i++)
                 {
@@ -1515,8 +1550,8 @@ namespace InterfaceForGraphCalculations
                     {
                         tb.IsEnabled = false;
                     }
-                    Grid.SetColumn(tb, i/points.Count);
-                    Grid.SetRow(tb, i%points.Count);
+                    Grid.SetColumn(tb, i/points.Count+1);
+                    Grid.SetRow(tb, i%points.Count+1);
                     LoadMatrixGrid.Children.Add(tb);
                 }
                 MatrixPopup.IsOpen = true;
@@ -1534,7 +1569,7 @@ namespace InterfaceForGraphCalculations
                 for (int i = 0; i < points.Count * points.Count; i++)
                 {
                     double load;
-                    if (Double.TryParse((LoadMatrixGrid.Children[i] as TextBox).Text, out load))
+                    if (Double.TryParse((LoadMatrixGrid.Children[i+points.Count*2] as TextBox).Text, out load))
                         newLoadMatrix[i / points.Count][i % points.Count] = load;
                     else throw new Exception("Not all the fields are containing appropriate format values");
                 }
@@ -1551,6 +1586,27 @@ namespace InterfaceForGraphCalculations
             }
         }
 
-
+        private void AverageDelay_Click(object sender, RoutedEventArgs e)
+        {
+            try
+            {
+                InfoField.Text = "Average: " + mainGraph.GetAverageDelay().ToString();
+            }
+            catch (Exception exc)
+            {
+                MessageBox.Show("Error: " + exc.Message, "Error", MessageBoxButton.OK, MessageBoxImage.Error);
+            }
+        }
+        private void MaxDelay_Click(object sender, RoutedEventArgs e)
+        {
+            try
+            {
+                InfoField.Text = "Max: " + mainGraph.GetMaxDelay().ToString();
+            }
+            catch (Exception exc)
+            {
+                MessageBox.Show("Error: " + exc.Message, "Error", MessageBoxButton.OK, MessageBoxImage.Error);
+            }
+        }
     }
 }
