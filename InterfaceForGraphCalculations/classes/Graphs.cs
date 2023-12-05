@@ -95,7 +95,7 @@ namespace InterfaceForGraphCalculations.classes
             public void SetVisualEdge(MainWindow.GraphBranch ge) => visualEdge = ge;
             public double GetDelay()
             {
-                return (double)(1 / mu * ((Bandwidth * 1048576) - (messageIntensity / mu)));
+                return (double)(1 / mu / ((Bandwidth * 1048576) - (messageIntensity / mu)));
             }
             public Edge(Vertex startVertex, Vertex endVertex, double Bandwidth = 0, double currentFlow = 0, 
                         bool isDirected = false, MainWindow.GraphBranch graphBranch = null)
@@ -118,7 +118,7 @@ namespace InterfaceForGraphCalculations.classes
         private double[][] tempFlows;
         private string name;
         private List<double> possibleBandwidths = new List<double>{ 2560, 3686, 4096, 5120, 8192, 10240, 10557, 13107, 13967, 16384,
-            20480, 24576,25221, 25600,26214, 32768, 40960, 42240, 49152,51200, 54886, 55848, 81920, 98304, 102400,
+            20480, 24576,25221, 25600,26214, 32768, 40960, 42240, 49152, 51200, 54886, 55848, 81920, 98304, 102400,
             126720, 163348, 167567, 204800, 307200, 409600, 614400 };
 
         public Graph()
@@ -373,8 +373,9 @@ namespace InterfaceForGraphCalculations.classes
             List<Vertex> path = GetPath(vert1, vert2);
             for (int i = 0; i < path.Count() - 1; i++)
             {
-                if (GetEdge(path[i], path[i + 1]) == null) throw new Exception("No edge between points: (" + path[i].GetXCoordinate() + ", " + path[i].GetYCoordinate() 
-                                                                               + ") and (" + path[i+1].GetXCoordinate() + ", " + path[i + 1].GetYCoordinate() + ")");
+                if (GetEdge(path[i], path[i + 1]) == null) 
+                    throw new Exception("No edge between points: (" + path[i].GetXCoordinate() + ", " + path[i].GetYCoordinate() 
+                                        + ") and (" + path[i+1].GetXCoordinate() + ", " + path[i + 1].GetYCoordinate() + ")");
                 GetEdge(path[i], path[i + 1]).AddFlow(extraFlow);
             }
         }
