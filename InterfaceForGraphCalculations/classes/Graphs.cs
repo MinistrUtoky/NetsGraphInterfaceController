@@ -12,7 +12,7 @@ using System.Drawing;
 using static InterfaceForGraphCalculations.MainWindow.GraphPoint;
 using static InterfaceForGraphCalculations.MainWindow.GraphBranch;
 using System.Windows.Shapes;
-//using MathNet.Numerics.Distributions;
+using MathNet.Numerics.Distributions;
 
 namespace InterfaceForGraphCalculations.classes
 {
@@ -40,7 +40,7 @@ namespace InterfaceForGraphCalculations.classes
             public float GetYCoordinate() => yCoordinate;
             public void SetXCoordinate(float xCoordinate) => this.xCoordinate = xCoordinate;
             public void SetTCoordinate(float yCoordinate) => this.yCoordinate = yCoordinate;
-            
+
             public void SetCoordinates(int xCoordinate, int yCoordinate)
             {
                 this.xCoordinate = xCoordinate;
@@ -53,7 +53,7 @@ namespace InterfaceForGraphCalculations.classes
             public float GetDataPassthroughModifier() => dataPassthroughModifier;
             public double GetDistance(Vertex otherVertex) => Math.Sqrt(Math.Pow((otherVertex.GetXCoordinate() - this.GetXCoordinate()), 2) + Math.Pow((otherVertex.GetYCoordinate() - this.GetYCoordinate()), 2));
             public int GetIndex() => index;
-            public void SetIndex(int index) => this.index = index;           
+            public void SetIndex(int index) => this.index = index;
             public MainWindow.GraphPoint GetVisualVertex() => visualPoint;
             public void SetVisualVertex(MainWindow.GraphPoint gp) => visualPoint = gp;
         }
@@ -65,13 +65,13 @@ namespace InterfaceForGraphCalculations.classes
             private Vertex startVertex;
             private Vertex endVertex;
             private MainWindow.GraphBranch visualEdge;
-            private double mu=1; //Needed for the delay calculations later, better ask Gostev
-            private double messageIntensity=1; //Per second
+            private double mu = 1; //Needed for the delay calculations later, better ask Gostev
+            private double messageIntensity = 1; //Per second
 
             private bool isDirected;
-            private bool toSecond=true;
+            private bool toSecond = true;
 
-            public bool ToSecond=>toSecond;
+            public bool ToSecond => toSecond;
 
             public Vertex GetStartVertex() => startVertex;
             public Vertex GetEndVertex() => endVertex;
@@ -90,14 +90,10 @@ namespace InterfaceForGraphCalculations.classes
             public double GetCurrentFlow() => currentFlow;
             public bool GetIsDirected() => isDirected;
             public void SetIsDirected(bool isDirected) => this.isDirected = isDirected;
-            public void SetToSecond(bool toSecond) => this.toSecond = toSecond;         
+            public void SetToSecond(bool toSecond) => this.toSecond = toSecond;
             public MainWindow.GraphBranch GetVisualEdge() => visualEdge;
             public void SetVisualEdge(MainWindow.GraphBranch ge) => visualEdge = ge;
-            public double GetDelay()
-            {
-                return (double)(1 / mu / ((Bandwidth * 1048576) - (messageIntensity / mu)));
-            }
-            public Edge(Vertex startVertex, Vertex endVertex, double Bandwidth = 0, double currentFlow = 0, 
+            public Edge(Vertex startVertex, Vertex endVertex, double Bandwidth = 0, double currentFlow = 0,
                         bool isDirected = false, MainWindow.GraphBranch graphBranch = null)
             {
                 this.isDirected = isDirected;
@@ -105,6 +101,10 @@ namespace InterfaceForGraphCalculations.classes
                 this.endVertex = endVertex;
                 this.currentFlow = currentFlow;
                 this.Bandwidth = Bandwidth;
+            }
+            public double GetDelay()
+            {
+                return (double)(1 / mu * ((Bandwidth * 1048576) - (messageIntensity / mu)));
             }
         }
 
@@ -118,8 +118,13 @@ namespace InterfaceForGraphCalculations.classes
         private double[][] tempFlows;
         private string name;
         private List<double> possibleBandwidths = new List<double>{ 2560, 3686, 4096, 5120, 8192, 10240, 10557, 13107, 13967, 16384,
-            20480, 24576,25221, 25600,26214, 32768, 40960, 42240, 49152, 51200, 54886, 55848, 81920, 98304, 102400,
+            20480, 24576,25221, 25600,26214, 32768, 40960, 42240, 49152,51200, 54886, 55848, 81920, 98304, 102400,
             126720, 163348, 167567, 204800, 307200, 409600, 614400 };
+        private Dictionary<double, double> prices = new Dictionary<double, double>(){  //Prices to be set properly later
+            {2560, 0}, {3686, 0}, {4096, 0}, {5120, 0}, {8192, 0}, {10240, 0}, {10557, 0}, {13107, 0}, {13967, 0}, {16384, 0},
+            {20480, 0}, {24576, 0}, {25221, 0}, {25600, 0}, {26214, 0}, {32768, 0}, {40960, 0}, {42240, 0}, {49152, 0}, {51200, 0}, {54886, 0}, {55848, 0}, {81920,  0}, {98304, 0}, {102400, 0},
+            {126720, 0}, {163348, 0}, {167567, 0}, {204800, 0}, {307200, 0}, {409600, 0}, {614400, 0}
+        };
 
         public Graph()
         {
@@ -373,9 +378,8 @@ namespace InterfaceForGraphCalculations.classes
             List<Vertex> path = GetPath(vert1, vert2);
             for (int i = 0; i < path.Count() - 1; i++)
             {
-                if (GetEdge(path[i], path[i + 1]) == null) 
-                    throw new Exception("No edge between points: (" + path[i].GetXCoordinate() + ", " + path[i].GetYCoordinate() 
-                                        + ") and (" + path[i+1].GetXCoordinate() + ", " + path[i + 1].GetYCoordinate() + ")");
+                if (GetEdge(path[i], path[i + 1]) == null) throw new Exception("No edge between points: (" + path[i].GetXCoordinate() + ", " + path[i].GetYCoordinate() 
+                                                                               + ") and (" + path[i+1].GetXCoordinate() + ", " + path[i + 1].GetYCoordinate() + ")");
                 GetEdge(path[i], path[i + 1]).AddFlow(extraFlow);
             }
         }
@@ -407,6 +411,31 @@ namespace InterfaceForGraphCalculations.classes
                 }
             }
             return maxDelay;
+        }
+        public void SetPrice(double key,double newPrice)
+        {
+            prices[key] = newPrice;
+        }
+        public void SetPrice(Edge e, double newPrice)
+        {
+            prices[e.GetBandwidth()] = newPrice;
+        }
+        public double GetPrice(double key)
+        {
+            return prices[key];
+        }
+        public double GetPrice(Edge e)
+        {
+            return prices[e.GetBandwidth()];
+        }
+        public double GetTotalPrice()
+        {
+            double totalPrice=0.0;
+            foreach (Edge e in edges)
+            {
+                totalPrice += GetPrice(e);
+            }
+            return totalPrice;
         }
     }
 }
