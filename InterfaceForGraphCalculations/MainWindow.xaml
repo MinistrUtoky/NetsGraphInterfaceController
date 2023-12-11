@@ -79,6 +79,7 @@
             <Button Content="Fill load matrix" Click="FillLoadMatrix_Click"/>
             <Button Content="Average delay" Click="AverageDelay_Click"/>
             <Button Content="Max delay" Click="MaxDelay_Click"/>
+            <Button Content="Total price" Click="TotalPrice_Click"/>
             <TextBlock TextWrapping="Wrap" Name="InfoField"></TextBlock>
         </StackPanel>
         <Popup Placement="Center" x:Name="NewGraphPopup" IsOpen="False" MinWidth="100" MinHeight="50">
@@ -368,12 +369,18 @@
                     <Grid.RowDefinitions>
                         <RowDefinition Height="1*"/>
                         <RowDefinition Height="1*"/>
+                        <RowDefinition Height="1*"/>
+                        <RowDefinition Height="1*"/>
+                        <RowDefinition Height="1*"/>
                     </Grid.RowDefinitions>
-                    <ScrollViewer HorizontalScrollBarVisibility="Auto" Name="LoadMatrixGridScroller">
+                    <TextBlock Text="Message length (in symbols):"/>
+                    <TextBox Grid.Row="1" x:Name="MessageLength" Text="1"/>
+                    <TextBlock Grid.Row="2" Text="Load matrix:"/>
+                    <ScrollViewer Grid.Row="3" HorizontalScrollBarVisibility="Auto" Name="LoadMatrixGridScroller">
                         <Grid Name="LoadMatrixGrid">
                         </Grid>
                     </ScrollViewer>
-                    <Button Grid.Row="1" Content="Confirm input" Click="FillLoadMatrixButton_Click"/>
+                    <Button Grid.Row="4" Content="Confirm input" Click="FillLoadMatrixButton_Click"/>
                 </Grid>
             </Border>
         </Popup>

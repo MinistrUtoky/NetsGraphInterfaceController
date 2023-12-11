@@ -1554,6 +1554,7 @@ namespace InterfaceForGraphCalculations
                     Grid.SetRow(tb, i%points.Count+1);
                     LoadMatrixGrid.Children.Add(tb);
                 }
+                MessageLength.Text = "1";
                 MatrixPopup.IsOpen = true;
             }
             else
@@ -1573,6 +1574,9 @@ namespace InterfaceForGraphCalculations
                         newLoadMatrix[i / points.Count][i % points.Count] = load;
                     else throw new Exception("Not all the fields are containing appropriate format values");
                 }
+                double messageLength;
+                if (Double.TryParse(MessageLength.Text, out messageLength))
+                    mainGraph.SetMessageLength(messageLength);
                 mainGraph.NewTempFlowsBasedOnLoadMatrix(newLoadMatrix);
                 branches.ForEach(branch => {
                     branch.SetMaximumCapacity((float)branch.Edge.GetBandwidth());
@@ -1590,7 +1594,7 @@ namespace InterfaceForGraphCalculations
         {
             try
             {
-                InfoField.Text = "Average: " + mainGraph.GetAverageDelay().ToString();
+                InfoField.Text = "Average delay: " + mainGraph.GetAverageDelay().ToString();
             }
             catch (Exception exc)
             {
@@ -1601,7 +1605,18 @@ namespace InterfaceForGraphCalculations
         {
             try
             {
-                InfoField.Text = "Max: " + mainGraph.GetMaxDelay().ToString();
+                InfoField.Text = "Max delay: " + mainGraph.GetMaxDelay().ToString();
+            }
+            catch (Exception exc)
+            {
+                MessageBox.Show("Error: " + exc.Message, "Error", MessageBoxButton.OK, MessageBoxImage.Error);
+            }
+        }
+        private void TotalPrice_Click(object sender, RoutedEventArgs e)
+        {
+            try
+            {
+                InfoField.Text = "Total price: " + mainGraph.GetTotalPrice().ToString() + "rub.";
             }
             catch (Exception exc)
             {

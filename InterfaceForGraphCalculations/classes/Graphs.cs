@@ -12,7 +12,7 @@ using System.Drawing;
 using static InterfaceForGraphCalculations.MainWindow.GraphPoint;
 using static InterfaceForGraphCalculations.MainWindow.GraphBranch;
 using System.Windows.Shapes;
-using MathNet.Numerics.Distributions;
+//using MathNet.Numerics.Distributions;
 
 namespace InterfaceForGraphCalculations.classes
 {
@@ -40,7 +40,7 @@ namespace InterfaceForGraphCalculations.classes
             public float GetYCoordinate() => yCoordinate;
             public void SetXCoordinate(float xCoordinate) => this.xCoordinate = xCoordinate;
             public void SetTCoordinate(float yCoordinate) => this.yCoordinate = yCoordinate;
-
+            
             public void SetCoordinates(int xCoordinate, int yCoordinate)
             {
                 this.xCoordinate = xCoordinate;
@@ -53,33 +53,32 @@ namespace InterfaceForGraphCalculations.classes
             public float GetDataPassthroughModifier() => dataPassthroughModifier;
             public double GetDistance(Vertex otherVertex) => Math.Sqrt(Math.Pow((otherVertex.GetXCoordinate() - this.GetXCoordinate()), 2) + Math.Pow((otherVertex.GetYCoordinate() - this.GetYCoordinate()), 2));
             public int GetIndex() => index;
-            public void SetIndex(int index) => this.index = index;
+            public void SetIndex(int index) => this.index = index;           
             public MainWindow.GraphPoint GetVisualVertex() => visualPoint;
             public void SetVisualVertex(MainWindow.GraphPoint gp) => visualPoint = gp;
         }
         public class Edge
         {
-            // Bandwidth в мегабитах/с
-            private double Bandwidth;
+            // bandwidth в мегабитах/с
+            private double bandwidth;
             private double currentFlow;
             private Vertex startVertex;
             private Vertex endVertex;
             private MainWindow.GraphBranch visualEdge;
-            private double mu = 1; //Needed for the delay calculations later, better ask Gostev
-            private double messageIntensity = 1; //Per second
+            private double length; //в километрах
 
             private bool isDirected;
-            private bool toSecond = true;
+            private bool toSecond=true;
 
-            public bool ToSecond => toSecond;
+            public bool ToSecond=>toSecond;
 
             public Vertex GetStartVertex() => startVertex;
             public Vertex GetEndVertex() => endVertex;
-            public void SetBandwidth(double maxLoad) => this.Bandwidth = maxLoad;
-            public double GetBandwidth() => Bandwidth;
+            public void SetBandwidth(double maxLoad) => this.bandwidth = maxLoad;
+            public double GetBandwidth() => bandwidth;
             public void AddFlow(double addedLoad)
             {
-                if (currentFlow + addedLoad <= Bandwidth)
+                if (currentFlow + addedLoad <= bandwidth)
                     currentFlow += addedLoad;
             }
             public void RemoveFlow(double removableLoad)
@@ -90,21 +89,25 @@ namespace InterfaceForGraphCalculations.classes
             public double GetCurrentFlow() => currentFlow;
             public bool GetIsDirected() => isDirected;
             public void SetIsDirected(bool isDirected) => this.isDirected = isDirected;
-            public void SetToSecond(bool toSecond) => this.toSecond = toSecond;
+            public void SetToSecond(bool toSecond) => this.toSecond = toSecond;         
             public MainWindow.GraphBranch GetVisualEdge() => visualEdge;
             public void SetVisualEdge(MainWindow.GraphBranch ge) => visualEdge = ge;
-            public Edge(Vertex startVertex, Vertex endVertex, double Bandwidth = 0, double currentFlow = 0,
+            public double GetDelay(double messageLength)
+            {
+                return (double)(messageLength / 2 * (1 / (bandwidth * 1048576) + 1 / ((bandwidth * 1048576) - (currentFlow * 1048576))));
+            }
+            public double GetPrice(Dictionary<double, double> prices, double constructionPrice)
+            {
+                return length * constructionPrice + prices[bandwidth];
+            }
+            public Edge(Vertex startVertex, Vertex endVertex, double bandwidth = 0, double currentFlow = 0, 
                         bool isDirected = false, MainWindow.GraphBranch graphBranch = null)
             {
                 this.isDirected = isDirected;
                 this.startVertex = startVertex;
                 this.endVertex = endVertex;
                 this.currentFlow = currentFlow;
-                this.Bandwidth = Bandwidth;
-            }
-            public double GetDelay()
-            {
-                return (double)(1 / mu * ((Bandwidth * 1048576) - (messageIntensity / mu)));
+                this.bandwidth = bandwidth;
             }
         }
 
@@ -117,13 +120,13 @@ namespace InterfaceForGraphCalculations.classes
         private int[][] prev;
         private double[][] tempFlows;
         private string name;
-        private List<double> possibleBandwidths = new List<double>{ 2560, 3686, 4096, 5120, 8192, 10240, 10557, 13107, 13967, 16384,
-            20480, 24576,25221, 25600,26214, 32768, 40960, 42240, 49152,51200, 54886, 55848, 81920, 98304, 102400,
-            126720, 163348, 167567, 204800, 307200, 409600, 614400 };
-        private Dictionary<double, double> prices = new Dictionary<double, double>(){  //Prices to be set properly later
-            {2560, 0}, {3686, 0}, {4096, 0}, {5120, 0}, {8192, 0}, {10240, 0}, {10557, 0}, {13107, 0}, {13967, 0}, {16384, 0},
-            {20480, 0}, {24576, 0}, {25221, 0}, {25600, 0}, {26214, 0}, {32768, 0}, {40960, 0}, {42240, 0}, {49152, 0}, {51200, 0}, {54886, 0}, {55848, 0}, {81920,  0}, {98304, 0}, {102400, 0},
-            {126720, 0}, {163348, 0}, {167567, 0}, {204800, 0}, {307200, 0}, {409600, 0}, {614400, 0}
+        private double messageLength;
+        private double constructionPrice;
+        private List<double> possibleBandwidths = new List<double>{
+            10, 100, 1024, 10240
+        };
+        private Dictionary<double, double> prices = new Dictionary<double, double>(){
+            {10, 6500}, {100, 12500}, {1024, 40000}, {10240, 90000}
         };
 
         public Graph()
@@ -136,16 +139,18 @@ namespace InterfaceForGraphCalculations.classes
             prev = new int[0][];
             tempFlows = new double[0][];
         }
-        public Graph(List<Vertex> vertices, List<Edge> edges, double[][] loadMatrix, string name = "")
+        public Graph(List<Vertex> vertices, List<Edge> edges, double[][] loadMatrix, double messageLength, string name = "", double constructionPrice = 17500)
         {
             this.vertices = vertices;
             this.edges = edges;
             this.name = name;
+            this.messageLength = messageLength;
             adjacencyMatrix = new double[vertices.Count()][];
             this.loadMatrix = new double[vertices.Count()][];
             dist = new double[vertices.Count()][];
             prev = new int[vertices.Count()][];
             tempFlows = new double[vertices.Count()][];
+
             for (int i = 0; i < vertices.Count(); i++)
             {
                 fastestPathsMatrix[i] = new double[vertices.Count()];
@@ -168,6 +173,8 @@ namespace InterfaceForGraphCalculations.classes
                 adjacencyMatrix[vertices.IndexOf(i.GetStartVertex())][vertices.IndexOf(i.GetEndVertex())] = 1;
             GenerateAllRoutes(); NewTempFlowsBasedOnLoadMatrix();
             this.name = name;
+            this.messageLength = messageLength;
+            this.constructionPrice = constructionPrice;
         }
         public void AddEdge(Vertex Vertex1, Vertex Vertex2, float maxLoad, bool isDirected, float currentLoad = 0)
         {
@@ -242,19 +249,19 @@ namespace InterfaceForGraphCalculations.classes
             path.Reverse();
             return path;
         }
-        public void InfinitizeBandwidths() => edges.ForEach(edge => edge.SetBandwidth(possibleBandwidths.Max() + 1));
+        public void Infinitizebandwidths() => edges.ForEach(edge => edge.SetBandwidth(possibleBandwidths.Max() + 1));
 
         public void NewTempFlowsBasedOnLoadMatrix() => NewTempFlowsBasedOnLoadMatrix(loadMatrix);
         
         public void NewTempFlowsBasedOnLoadMatrix(double[][] newLoadMatrix)
         {
-            InfinitizeBandwidths();
+            Infinitizebandwidths();
             foreach (Edge edge in edges)
                 edge.RemoveFlow(edge.GetCurrentFlow());
             for (int i = 0; i < newLoadMatrix.Length; i++)
                 for (int j = 0; j < newLoadMatrix[i].Length; j++) 
                     AddFlow(newLoadMatrix[i][j], vertices[i], vertices[j]);
-            SuggestMinimalBandwidthsBasedOnTempLoads();
+            SuggestMinimalbandwidthsBasedOnTempLoads();
         }
         private void SyncVertexIndex()
         {
@@ -299,7 +306,7 @@ namespace InterfaceForGraphCalculations.classes
             edges.Remove(GetEdge(vert1, vert2));
             ReformAdjacencyMatrix();
             GenerateAllRoutes(); NewTempFlowsBasedOnLoadMatrix();
-            SuggestMinimalBandwidthsBasedOnTempLoads();
+            SuggestMinimalbandwidthsBasedOnTempLoads();
         }
         public void ReformAdjacencyMatrix()
         {
@@ -343,7 +350,7 @@ namespace InterfaceForGraphCalculations.classes
             }
 
         }
-        private void SuggestMinimalBandwidthsBasedOnTempLoads()
+        private void SuggestMinimalbandwidthsBasedOnTempLoads()
         {
             for (int i = 0; i < vertices.Count(); i++)
                 for (int j = 0; j < vertices.Count(); j++)
@@ -356,17 +363,17 @@ namespace InterfaceForGraphCalculations.classes
                             }
             tempFlows = new double[0][];
         }
-        public void AddBandwidthsToList(double newStandart)
+        public void AddbandwidthsToList(double newStandart)
         {
             possibleBandwidths.Add(newStandart);
         }
-        public void RemoveBandwidthsFromList(double oldStandart)
+        public void RemovebandwidthsFromList(double oldStandart)
         {
             possibleBandwidths.Remove(oldStandart);
         }
-        public void ChangeBandwidth(Edge edge, double newBandwidth)
+        public void Changebandwidth(Edge edge, double newbandwidth)
         {
-            edges[edges.IndexOf(edge)].SetBandwidth(newBandwidth);
+            edges[edges.IndexOf(edge)].SetBandwidth(newbandwidth);
         }
         public void AddFlow(Edge edge, double additionalLoad)
         {
@@ -378,8 +385,9 @@ namespace InterfaceForGraphCalculations.classes
             List<Vertex> path = GetPath(vert1, vert2);
             for (int i = 0; i < path.Count() - 1; i++)
             {
-                if (GetEdge(path[i], path[i + 1]) == null) throw new Exception("No edge between points: (" + path[i].GetXCoordinate() + ", " + path[i].GetYCoordinate() 
-                                                                               + ") and (" + path[i+1].GetXCoordinate() + ", " + path[i + 1].GetYCoordinate() + ")");
+                if (GetEdge(path[i], path[i + 1]) == null) 
+                    throw new Exception("No edge between points: (" + path[i].GetXCoordinate() + ", " + path[i].GetYCoordinate() 
+                                        + ") and (" + path[i+1].GetXCoordinate() + ", " + path[i + 1].GetYCoordinate() + ")");
                 GetEdge(path[i], path[i + 1]).AddFlow(extraFlow);
             }
         }
@@ -393,26 +401,113 @@ namespace InterfaceForGraphCalculations.classes
         }
         public double GetAverageDelay()
         {
-            double delaySum=0.0;
-            foreach(Edge e in edges)
+            double delaySum = 0.0;
+            foreach (Edge e in edges)
             {
-                delaySum += e.GetDelay();
+                delaySum += e.GetDelay(messageLength);
             }
-            return delaySum/edges.Count;
+            return delaySum / edges.Count;
         }
         public double GetMaxDelay()
         {
             double maxDelay = 0.0;
             foreach (Edge e in edges)
             {
-                if (e.GetDelay() > maxDelay)
+                if (e.GetDelay(messageLength) > maxDelay)
                 {
-                    maxDelay = e.GetDelay();
+                    maxDelay = e.GetDelay(messageLength);
                 }
             }
             return maxDelay;
         }
-        public void SetPrice(double key,double newPrice)
+        public double GetMaxPathDelay(Vertex vert1, Vertex vert2)
+        {
+            GenerateAllRoutes();
+            double maxPathDelay = 0.0;
+            List<Vertex> path = GetPath(vert1, vert2);
+            for (int i = 0; i < path.Count() - 1; i++)
+            {
+                if (GetEdge(path[i], path[i + 1]) == null) throw new Exception("No edge between points: (" + path[i].GetXCoordinate() + ", " + path[i].GetYCoordinate()
+                                                                               + ") and (" + path[i + 1].GetXCoordinate() + ", " + path[i + 1].GetYCoordinate() + ")");
+                if (GetEdge(path[i], path[i + 1]).GetDelay(messageLength) > maxPathDelay)
+                {
+                    maxPathDelay = GetEdge(path[i], path[i + 1]).GetDelay(messageLength);
+                }
+            }
+            return (maxPathDelay);
+        }
+        public double GetAveragePathDelay(Vertex vert1, Vertex vert2)
+        {
+            GenerateAllRoutes();
+            double pathDelaySum = 0.0;
+            int counter = 0;
+            List<Vertex> path = GetPath(vert1, vert2);
+            for (int i = 0; i < path.Count() - 1; i++)
+            {
+                if (GetEdge(path[i], path[i + 1]) == null) throw new Exception("No edge between points: (" + path[i].GetXCoordinate() + ", " + path[i].GetYCoordinate()
+                                                                               + ") and (" + path[i + 1].GetXCoordinate() + ", " + path[i + 1].GetYCoordinate() + ")");
+                pathDelaySum += GetEdge(path[i], path[i + 1]).GetDelay(messageLength);
+                counter++;
+            }
+            return (pathDelaySum / counter);
+        }
+        public List<Vertex> GetMaxMaxDelayPath()
+        {
+            GenerateAllRoutes();
+            Tuple<int, int> maxDelayPath = new Tuple<int, int>(-1, -1);
+            double maxMaxDelay = 0.0;
+            List<Tuple<int, int>> paths = new List<Tuple<int, int>>();
+            for (int i = 0; i < loadMatrix.Length; i++)
+            {
+                for (int j = 0; j < loadMatrix.Length; j++)
+                {
+                    if (loadMatrix[i][j] != 0)
+                    {
+                        paths.Add(new Tuple<int, int>(i, j));
+                    }
+                }
+            }
+            if (paths == new List<Tuple<int, int>>()) throw new Exception("There are no valid paths");
+            foreach (var path in paths)
+            {
+                if (GetMaxPathDelay(vertices[path.Item1], vertices[path.Item2]) > maxMaxDelay)
+                {
+                    maxMaxDelay = GetMaxPathDelay(vertices[path.Item1], vertices[path.Item2]);
+                    maxDelayPath = new Tuple<int, int>(path.Item1, path.Item2);
+                }
+            }
+            if (maxDelayPath.Item1 == -1 || maxDelayPath.Item2 == -1) throw new Exception("There is no valid max max delay path");
+            return new List<Vertex> { vertices[maxDelayPath.Item1], vertices[maxDelayPath.Item2] };
+        }
+        public List<Vertex> GetMaxAverageDelayPath()
+        {
+            GenerateAllRoutes();
+            Tuple<int, int> maxAverageDelayPath = new Tuple<int, int>(-1, -1);
+            double maxAverageDelay = 0.0;
+            List<Tuple<int, int>> paths = new List<Tuple<int, int>>();
+            for (int i = 0; i < loadMatrix.Length; i++)
+            {
+                for (int j = 0; j < loadMatrix.Length; j++)
+                {
+                    if (loadMatrix[i][j] != 0)
+                    {
+                        paths.Add(new Tuple<int, int>(i, j));
+                    }
+                }
+            }
+            if (paths == new List<Tuple<int, int>>()) throw new Exception("There are no valid paths");
+            foreach (var path in paths)
+            {
+                if (GetAveragePathDelay(vertices[path.Item1], vertices[path.Item2]) > maxAverageDelay)
+                {
+                    maxAverageDelay = GetAveragePathDelay(vertices[path.Item1], vertices[path.Item2]);
+                    maxAverageDelayPath = new Tuple<int, int>(path.Item1, path.Item2);
+                }
+            }
+            if (maxAverageDelayPath.Item1 == -1 || maxAverageDelayPath.Item2 == -1) throw new Exception("There is no valid max average delay path");
+            return new List<Vertex> { vertices[maxAverageDelayPath.Item1], vertices[maxAverageDelayPath.Item2] }; ;
+        }
+        public void SetPrice(double key, double newPrice)
         {
             prices[key] = newPrice;
         }
@@ -426,16 +521,34 @@ namespace InterfaceForGraphCalculations.classes
         }
         public double GetPrice(Edge e)
         {
-            return prices[e.GetBandwidth()];
+            return e.GetPrice(prices, constructionPrice);
+        }
+        public void AddNewBandwidth(double bandwidth, double price)
+        {
+            prices.Add(bandwidth, price);
+        }
+        public void RemoveBandwidth(double bandwidth)
+        {
+            possibleBandwidths.Remove(bandwidth);
+            prices.Remove(bandwidth);
+        }
+        public void SetConstructionPrice(double newPrice)
+        {
+            constructionPrice = newPrice;
+        }
+        public double GetConstructionPrice()
+        {
+            return constructionPrice;
         }
         public double GetTotalPrice()
         {
-            double totalPrice=0.0;
+            double totalPrice = 0.0;
             foreach (Edge e in edges)
             {
-                totalPrice += GetPrice(e);
+                totalPrice += e.GetPrice(prices, constructionPrice);
             }
             return totalPrice;
         }
+        public void SetMessageLength(double length) => messageLength = length;
     }
 }
