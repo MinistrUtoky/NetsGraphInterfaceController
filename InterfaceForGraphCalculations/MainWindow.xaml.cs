@@ -126,7 +126,8 @@ namespace InterfaceForGraphCalculations
             }
             public void ShowTextBlock() => loadTextBlock.Visibility = Visibility.Visible;
             public void HideTextBlock() => loadTextBlock.Visibility = Visibility.Hidden;
-            public void SetMaximumCapacity(float maxCapacity) {
+            public void SetMaximumCapacity(float maxCapacity)
+            {
                 maximumCapacity = maxCapacity;
                 if (maxCapacity != 0)
                 {
@@ -134,7 +135,8 @@ namespace InterfaceForGraphCalculations
                     edge.SetBandwidth(maxCapacity);
                 }
             }
-            public void SetCurrentLoad(float load) {
+            public void SetCurrentLoad(float load)
+            {
                 currentLoad = load;
                 if (maximumCapacity != 0)
                 {
@@ -144,13 +146,15 @@ namespace InterfaceForGraphCalculations
             }
             public void AssignArrowToVisualPoint1(Polygon arrow) => arrowToPoint1 = arrow;
             public void AssignArrowToVisualPoint2(Polygon arrow) => arrowToPoint2 = arrow;
-            public void ShowArrows() {
+            public void ShowArrows()
+            {
                 if (arrowToPoint1 != null & (direction == Direction.Both || direction == Direction.ToFirst))
                     arrowToPoint1.Visibility = Visibility.Visible;
                 if (arrowToPoint2 != null & (direction == Direction.Both || direction == Direction.ToSecond))
                     arrowToPoint2.Visibility = Visibility.Visible;
             }
-            public void HideArrows() {
+            public void HideArrows()
+            {
                 if (arrowToPoint1 != null) arrowToPoint1.Visibility = Visibility.Hidden;
                 if (arrowToPoint2 != null) arrowToPoint2.Visibility = Visibility.Hidden;
             }
@@ -759,7 +763,7 @@ namespace InterfaceForGraphCalculations
         {
             Process p = new Process();
             p.StartInfo.UseShellExecute = true;
-            p.StartInfo.FileName = "https://en.wikipedia.org/wiki/Graph_theory";
+            p.StartInfo.FileName = "http://gvmax.ru/";
             p.Start();
         }
 
@@ -1001,18 +1005,21 @@ namespace InterfaceForGraphCalculations
                             loads.Clear();
                             loadStrings = loadLine.Split(";");
                             i = 0;
-                            while (i < loadStrings.Length) {
+                            while (i < loadStrings.Length)
+                            {
                                 if (!Double.TryParse(loadStrings[i], out loadValue)) break;
                                 loads.Add(loadValue);
                                 i++;
                             }
-                            if (loads.Count > 0) {
+                            if (loads.Count > 0)
+                            {
                                 newLoadMatrix[row] = loads.ToArray();
                                 row++;
                             }
                         }
                         mainGraph.NewTempFlowsBasedOnLoadMatrix(newLoadMatrix);
-                        branches.ForEach(branch => {
+                        branches.ForEach(branch =>
+                        {
                             branch.SetMaximumCapacity((float)branch.Edge.GetBandwidth());
                             branch.SetCurrentLoad((float)branch.Edge.GetCurrentFlow());
                         });
@@ -1431,7 +1438,8 @@ namespace InterfaceForGraphCalculations
         }
         private void CalculatePath(GraphPoint point1, GraphPoint point2)
         {
-            branches.ForEach(b => { 
+            branches.ForEach(b =>
+            {
                 b.ExcludeFromPath();
                 if (!GraphProperties.IsChecked)
                     b.VisualBranch.Stroke = Brushes.Black;
@@ -1448,6 +1456,8 @@ namespace InterfaceForGraphCalculations
                     b.VisualBranch.Stroke = Brushes.Blue;
                 path[i].GetVisualVertex().VisualPoint.Stroke = Brushes.Blue;
             }
+            InfoField.Text = "Path's max delay: " + mainGraph.GetMaxPathDelay(point1.Vertex, point2.Vertex)
+                                + "\nPath's average delay: " + mainGraph.GetAveragePathDelay(point1.Vertex, point2.Vertex) ;
             RedrawGraph();
         }
         private void StartPathHere_Click(object sender, RoutedEventArgs e)
@@ -1485,7 +1495,8 @@ namespace InterfaceForGraphCalculations
         }
         private void FillLoadMatrix_Click(object sender, RoutedEventArgs e)
         {
-            if (points.Count > 1) { 
+            if (points.Count > 1)
+            {
                 LoadMatrixGrid.RowDefinitions.Clear();
                 LoadMatrixGrid.ColumnDefinitions.Clear();
                 LoadMatrixGrid.Children.Clear();
@@ -1493,14 +1504,14 @@ namespace InterfaceForGraphCalculations
                 LoadMatrixGridScroller.MaxWidth = MainCanvas.ActualWidth * (1 + 1 / points.Count);
                 LoadMatrixGridScroller.MaxHeight = MainCanvas.ActualHeight * (1 + 1 / points.Count);
 
-                for (int i = 0; i < points.Count+1; i++)
+                for (int i = 0; i < points.Count + 1; i++)
                 {
                     LoadMatrixGrid.ColumnDefinitions.Add(new ColumnDefinition()
                     {
                         Width = new GridLength(1, GridUnitType.Star)
                     });
                     LoadMatrixGrid.RowDefinitions.Add(new RowDefinition()
-                    { 
+                    {
                         Height = new GridLength(1, GridUnitType.Star)
                     });
                 }
@@ -1538,20 +1549,25 @@ namespace InterfaceForGraphCalculations
                         LoadMatrixGrid.Children.Add(tBlock2);
                     }
                 }
-                for (int i = 0; i < points.Count*points.Count; i++)
+                for (int i = 0; i < points.Count * points.Count; i++)
                 {
-                    TextBox tb = new TextBox() { VerticalContentAlignment=VerticalAlignment.Center,
-                                                HorizontalContentAlignment = HorizontalAlignment.Center,
-                                                TextWrapping=TextWrapping.NoWrap,
-                                                MinHeight = 36, MinWidth = 64, 
-                                                MaxWidth=64, MaxHeight=36, Text="0"
+                    TextBox tb = new TextBox()
+                    {
+                        VerticalContentAlignment = VerticalAlignment.Center,
+                        HorizontalContentAlignment = HorizontalAlignment.Center,
+                        TextWrapping = TextWrapping.NoWrap,
+                        MinHeight = 36,
+                        MinWidth = 64,
+                        MaxWidth = 64,
+                        MaxHeight = 36,
+                        Text = "0"
                     };
-                    if (i/points.Count==i%points.Count)
+                    if (i / points.Count == i % points.Count)
                     {
                         tb.IsEnabled = false;
                     }
-                    Grid.SetColumn(tb, i/points.Count+1);
-                    Grid.SetRow(tb, i%points.Count+1);
+                    Grid.SetColumn(tb, i / points.Count + 1);
+                    Grid.SetRow(tb, i % points.Count + 1);
                     LoadMatrixGrid.Children.Add(tb);
                 }
                 MessageLength.Text = "1";
@@ -1564,13 +1580,14 @@ namespace InterfaceForGraphCalculations
         }
         private void FillLoadMatrixButton_Click(object sender, RoutedEventArgs e)
         {
-            try { 
+            try
+            {
                 double[][] newLoadMatrix = new double[points.Count][];
                 for (int i = 0; i < points.Count; i++) newLoadMatrix[i] = new double[points.Count];
                 for (int i = 0; i < points.Count * points.Count; i++)
                 {
                     double load;
-                    if (Double.TryParse((LoadMatrixGrid.Children[i+points.Count*2] as TextBox).Text, out load))
+                    if (Double.TryParse((LoadMatrixGrid.Children[i + points.Count * 2] as TextBox).Text, out load))
                         newLoadMatrix[i / points.Count][i % points.Count] = load;
                     else throw new Exception("Not all the fields are containing appropriate format values");
                 }
@@ -1578,7 +1595,8 @@ namespace InterfaceForGraphCalculations
                 if (Double.TryParse(MessageLength.Text, out messageLength))
                     mainGraph.SetMessageLength(messageLength);
                 mainGraph.NewTempFlowsBasedOnLoadMatrix(newLoadMatrix);
-                branches.ForEach(branch => {
+                branches.ForEach(branch =>
+                {
                     branch.SetMaximumCapacity((float)branch.Edge.GetBandwidth());
                     branch.SetCurrentLoad((float)branch.Edge.GetCurrentFlow());
                 });
@@ -1605,6 +1623,7 @@ namespace InterfaceForGraphCalculations
         {
             try
             {
+                mainGraph.GetMaxDelayEdge().GetVisualEdge().VisualBranch.Stroke = Brushes.Violet;
                 InfoField.Text = "Max delay: " + mainGraph.GetMaxDelay().ToString();
             }
             catch (Exception exc)
@@ -1621,6 +1640,66 @@ namespace InterfaceForGraphCalculations
             catch (Exception exc)
             {
                 MessageBox.Show("Error: " + exc.Message, "Error", MessageBoxButton.OK, MessageBoxImage.Error);
+            }
+        }
+
+        private void CalculateBottleneck_Click(object sender, RoutedEventArgs e)
+        {
+            FirstBottleneckPathPointComboBox.Items.Clear();
+            SecondBottleneckPathPointComboBox.Items.Clear();
+            for (int i = 0; i < points.Count; i++)
+                FirstBottleneckPathPointComboBox.Items.Add("Point " + (i + 1) + "(" + Math.Round((Canvas.GetLeft(points[i].VisualPoint) + POINT_RADIUS - coordinatesCenter[0]) / totalZoom, 2)
+                                                    + ", " + Math.Round((Canvas.GetBottom(points[i].VisualPoint) + POINT_RADIUS - coordinatesCenter[1]) / totalZoom, 2) + ")");
+            CalculateBottleneckPopup.IsOpen = true;
+        }
+        
+        private void CalculateBottleneckButton_Click(object sender, RoutedEventArgs e)
+        {
+            if (FirstBottleneckPathPointComboBox.SelectedItem != null & SecondBottleneckPathPointComboBox.SelectedItem != null)
+            {
+                GraphPoint point1 = points[FirstBottleneckPathPointComboBox.SelectedIndex];
+                GraphPoint point2 = points[SecondBottleneckPathPointComboBox.SelectedIndex < FirstBottleneckPathPointComboBox.SelectedIndex ? SecondBottleneckPathPointComboBox.SelectedIndex : SecondBottleneckPathPointComboBox.SelectedIndex + 1];
+                CalculateBottleneck(point1, point2);
+            }
+            CalculateBottleneckPopup.IsOpen = false;
+        }
+        private void CalculateBottleneck(GraphPoint point1, GraphPoint point2)
+        {
+            branches.ForEach(b =>
+            {
+                b.ExcludeFromPath();
+                if (!GraphProperties.IsChecked)
+                    b.VisualBranch.Stroke = Brushes.Black;
+            });
+            points.ForEach(p => p.VisualPoint.Stroke = Brushes.Black);
+            List<Vertex> path = mainGraph.GetPath(point1.Vertex, point2.Vertex);
+            path[0].GetVisualVertex().VisualPoint.Stroke = Brushes.Blue;
+            for (int i = 1; i < path.Count; i++)
+            {
+                GraphBranch b = branches.Find(branch => branch.VisualPoint1 == path[i - 1].GetVisualVertex() & branch.VisualPoint2 == path[i].GetVisualVertex()
+                                        || branch.VisualPoint2 == path[i - 1].GetVisualVertex() & branch.VisualPoint1 == path[i].GetVisualVertex());
+                b.IncludeInPath();
+                if (!GraphProperties.IsChecked)
+                    b.VisualBranch.Stroke = Brushes.Blue;
+                path[i].GetVisualVertex().VisualPoint.Stroke = Brushes.Blue;
+            }
+            Edge maxDelayEdge = mainGraph.GetMaxPathDelayEdge(point1.Vertex, point2.Vertex);
+            InfoField.Text = "Path's max delay: " + mainGraph.GetMaxPathDelay(point1.Vertex, point2.Vertex)
+                                + "\nPath's average delay: " + mainGraph.GetAveragePathDelay(point1.Vertex, point2.Vertex);
+            RedrawGraph();
+            maxDelayEdge.GetVisualEdge().VisualBranch.Stroke = Brushes.Violet;
+        }
+
+        private void FirstBottleneckPointComboBox_SelectionChanged(object sender, SelectionChangedEventArgs e) => RenewSecondBottleneckPathPointComboBox();
+        private void RenewSecondBottleneckPathPointComboBox()
+        {
+            SecondBottleneckPathPointComboBox.Items.Clear();
+            if (FirstBottleneckPathPointComboBox.SelectedItem != null)
+            {
+                for (int i = 0; i < points.Count; i++)
+                    if (i != FirstBottleneckPathPointComboBox.SelectedIndex)
+                        SecondBottleneckPathPointComboBox.Items.Add("Point " + (i + 1) + "(" + Math.Round((Canvas.GetLeft(points[i].VisualPoint) + POINT_RADIUS - coordinatesCenter[0]) / totalZoom, 2)
+                                                     + ", " + Math.Round((Canvas.GetBottom(points[i].VisualPoint) + POINT_RADIUS - coordinatesCenter[1]) / totalZoom, 2) + ")");
             }
         }
     }

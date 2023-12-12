@@ -410,20 +410,42 @@ namespace InterfaceForGraphCalculations.classes
         }
         public double GetMaxDelay()
         {
+            double maxDelay = GetMaxDelayEdge().GetDelay(messageLength);
+            return maxDelay;
+        }
+        public Edge GetMaxDelayEdge()
+        {
             double maxDelay = 0.0;
+            Edge maxEdge = null;
             foreach (Edge e in edges)
             {
                 if (e.GetDelay(messageLength) > maxDelay)
                 {
                     maxDelay = e.GetDelay(messageLength);
+                    maxEdge = e;
                 }
             }
-            return maxDelay;
+            if (maxEdge == null) throw new Exception("No load matrix passage");
+            return maxEdge;
         }
-        public double GetMaxPathDelay(Vertex vert1, Vertex vert2)
+        public double GetPathDelay (Vertex vert1, Vertex vert2)
+        {
+            GenerateAllRoutes();
+            double pathDelaySum = 0.0;
+            List<Vertex> path = GetPath(vert1, vert2);
+            for (int i = 0; i < path.Count() - 1; i++)
+            {
+                if (GetEdge(path[i], path[i + 1]) == null) throw new Exception("No edge between points: (" + path[i].GetXCoordinate() + ", " + path[i].GetYCoordinate()
+                                                                               + ") and (" + path[i + 1].GetXCoordinate() + ", " + path[i + 1].GetYCoordinate() + ")");
+                pathDelaySum += GetEdge(path[i], path[i + 1]).GetDelay(messageLength);
+            }
+            return pathDelaySum;
+        }
+        public Edge GetMaxPathDelayEdge(Vertex vert1, Vertex vert2)
         {
             GenerateAllRoutes();
             double maxPathDelay = 0.0;
+            Edge maxDelayEdge= null;
             List<Vertex> path = GetPath(vert1, vert2);
             for (int i = 0; i < path.Count() - 1; i++)
             {
@@ -432,24 +454,35 @@ namespace InterfaceForGraphCalculations.classes
                 if (GetEdge(path[i], path[i + 1]).GetDelay(messageLength) > maxPathDelay)
                 {
                     maxPathDelay = GetEdge(path[i], path[i + 1]).GetDelay(messageLength);
+                    maxDelayEdge = GetEdge(path[i], path[i + 1]);
                 }
             }
-            return (maxPathDelay);
+            return (maxDelayEdge);
         }
-        public double GetAveragePathDelay(Vertex vert1, Vertex vert2)
+        public double GetMaxPathDelay(Vertex vert1, Vertex vert2)
         {
             GenerateAllRoutes();
-            double pathDelaySum = 0.0;
-            int counter = 0;
+            double maxPathDelay = 0.0;
+            Edge maxDelayEdge = null;
             List<Vertex> path = GetPath(vert1, vert2);
             for (int i = 0; i < path.Count() - 1; i++)
             {
                 if (GetEdge(path[i], path[i + 1]) == null) throw new Exception("No edge between points: (" + path[i].GetXCoordinate() + ", " + path[i].GetYCoordinate()
                                                                                + ") and (" + path[i + 1].GetXCoordinate() + ", " + path[i + 1].GetYCoordinate() + ")");
-                pathDelaySum += GetEdge(path[i], path[i + 1]).GetDelay(messageLength);
-                counter++;
+                if (GetEdge(path[i], path[i + 1]).GetDelay(messageLength) > maxPathDelay)
+                {
+                    maxPathDelay = GetEdge(path[i], path[i + 1]).GetDelay(messageLength);
+                    maxDelayEdge = GetEdge(path[i], path[i + 1]);
+                }
             }
-            return (pathDelaySum / counter);
+            if (maxDelayEdge == null) throw new Exception("No max delay edge");
+            return (maxDelayEdge.GetDelay(messageLength));
+        }
+        public double GetAveragePathDelay(Vertex vert1, Vertex vert2)
+        {
+            GenerateAllRoutes();
+            List<Vertex> path = GetPath(vert1, vert2);
+            return (GetPathDelay(vert1,vert2) / path.Count-1);
         }
         public List<Vertex> GetMaxMaxDelayPath()
         {
@@ -470,9 +503,9 @@ namespace InterfaceForGraphCalculations.classes
             if (paths == new List<Tuple<int, int>>()) throw new Exception("There are no valid paths");
             foreach (var path in paths)
             {
-                if (GetMaxPathDelay(vertices[path.Item1], vertices[path.Item2]) > maxMaxDelay)
+                if (GetMaxPathDelayEdge(vertices[path.Item1], vertices[path.Item2]).GetDelay(messageLength) > maxMaxDelay)
                 {
-                    maxMaxDelay = GetMaxPathDelay(vertices[path.Item1], vertices[path.Item2]);
+                    maxMaxDelay = GetMaxPathDelayEdge(vertices[path.Item1], vertices[path.Item2]).GetDelay(messageLength);
                     maxDelayPath = new Tuple<int, int>(path.Item1, path.Item2);
                 }
             }
@@ -505,7 +538,34 @@ namespace InterfaceForGraphCalculations.classes
                 }
             }
             if (maxAverageDelayPath.Item1 == -1 || maxAverageDelayPath.Item2 == -1) throw new Exception("There is no valid max average delay path");
-            return new List<Vertex> { vertices[maxAverageDelayPath.Item1], vertices[maxAverageDelayPath.Item2] }; ;
+            return new List<Vertex> { vertices[maxAverageDelayPath.Item1], vertices[maxAverageDelayPath.Item2] }; 
+        }
+        public List<Vertex> GetPathWithMaxDelay(Vertex vert1, Vertex vert2)
+        {
+            GenerateAllRoutes();
+            Tuple<int, int> maxDelayPath = new Tuple<int, int>(-1, -1);
+            List<Tuple<int, int>> paths = new List<Tuple<int, int>>();
+            for (int i = 0; i < loadMatrix.Length; i++)
+            {
+                for (int j = 0; j < loadMatrix.Length; j++)
+                {
+                    if (loadMatrix[i][j] != 0)
+                    {
+                        paths.Add(new Tuple<int, int>(i, j));
+                    }
+                }
+            }
+            if (paths == new List<Tuple<int, int>>()) throw new Exception("There are no valid paths");
+            double maxDelay = 0.0;
+            foreach (var path in paths)
+            {
+                if (GetPathDelay(vertices[path.Item1], vertices[path.Item2]) > maxDelay)
+                {
+                    maxDelay = GetPathDelay(vertices[path.Item1], vertices[path.Item2]);
+                    maxDelayPath = new Tuple<int, int>(path.Item1, path.Item2);
+                }
+            }
+            return new List<Vertex> { vertices[maxDelayPath.Item1], vertices[maxDelayPath.Item2] };
         }
         public void SetPrice(double key, double newPrice)
         {
@@ -549,6 +609,7 @@ namespace InterfaceForGraphCalculations.classes
             }
             return totalPrice;
         }
+        public double GetMessageLength() => messageLength;
         public void SetMessageLength(double length) => messageLength = length;
     }
 }
