@@ -482,7 +482,7 @@ namespace InterfaceForGraphCalculations.classes
         {
             GenerateAllRoutes();
             List<Vertex> path = GetPath(vert1, vert2);
-            return (GetPathDelay(vert1,vert2) / path.Count-1);
+            return (GetPathDelay(vert1,vert2) / path.Count);
         }
         public List<Vertex> GetMaxMaxDelayPath()
         {
