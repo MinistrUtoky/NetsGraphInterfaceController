@@ -90,10 +90,12 @@
                     <Grid.RowDefinitions>
                         <RowDefinition Height="1*"/>
                         <RowDefinition Height="1*"/>
+                        <RowDefinition Height="1*"/>
                     </Grid.RowDefinitions>
                     <TextBlock TextAlignment="Center" Text="Are you sure?" Grid.ColumnSpan="2"/>
                     <Button Content="No" Grid.Row="1" Click="CloseNewGraphPopup_Click"/>
                     <Button Content="Yes" Grid.Row="1" Grid.Column="1" Click="NewGraphButton_Click"/>
+                    <Button Content="Save" Grid.Row="2" Grid.ColumnSpan="2" Click="SaveToCSV_Click"/>
                 </Grid>
             </Border>
         </Popup>

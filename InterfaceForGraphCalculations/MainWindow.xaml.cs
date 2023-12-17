@@ -809,6 +809,7 @@ namespace InterfaceForGraphCalculations
         {
             GraphNameCSV.Text = "";
             GraphDescriptionCSV.Text = "";
+            NewGraphPopup.IsOpen = false;
             SaveToCSVPopup.IsOpen = true;
         }
         private void SaveToCSVButton_Click(object sender, RoutedEventArgs e)
@@ -1457,8 +1458,7 @@ namespace InterfaceForGraphCalculations
                 path[i].GetVisualVertex().VisualPoint.Stroke = Brushes.Blue;
             }
             InfoField.Text = "Path's max delay: " + mainGraph.GetMaxPathDelay(point1.Vertex, point2.Vertex)
-                                + "\nPath's average delay: " + mainGraph.GetAveragePathDelay(point1.Vertex, point2.Vertex) +
-                                "\nPath's delay: " + mainGraph.GetPathDelay(point1.Vertex, point2.Vertex);
+                                + "\nPath's average delay: " + mainGraph.GetAveragePathDelay(point1.Vertex, point2.Vertex) ;
             RedrawGraph();
         }
         private void StartPathHere_Click(object sender, RoutedEventArgs e)
@@ -1686,8 +1686,7 @@ namespace InterfaceForGraphCalculations
             }
             Edge maxDelayEdge = mainGraph.GetMaxPathDelayEdge(point1.Vertex, point2.Vertex);
             InfoField.Text = "Path's max delay: " + mainGraph.GetMaxPathDelay(point1.Vertex, point2.Vertex)
-                                + "\nPath's average delay: " + mainGraph.GetAveragePathDelay(point1.Vertex, point2.Vertex)+
-                                "\nPath's delay: "+mainGraph.GetPathDelay(point1.Vertex,point2.Vertex);
+                                + "\nPath's average delay: " + mainGraph.GetAveragePathDelay(point1.Vertex, point2.Vertex);
             RedrawGraph();
             maxDelayEdge.GetVisualEdge().VisualBranch.Stroke = Brushes.Violet;
         }
