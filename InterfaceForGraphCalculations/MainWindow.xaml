@@ -53,7 +53,6 @@
                 <MenuItem Header="Graphs" Click="GraphsDB_Click"/>
                 <MenuItem Header="Vertices" Click="VerticesDB_Click"/>
                 <MenuItem Header="Branches" Click="BranchesDB_Click"/>
-                <MenuItem Header="Paths" Click="PathsDB_Click"/>
             </MenuItem>
             <MenuItem Header="FAQ" Click="FAQ_Click"/>
         </Menu>
@@ -343,25 +342,6 @@
                     <ComboBox Name="FirstPathPointComboBox" SelectionChanged="FirstPathPointComboBox_SelectionChanged" Grid.Row="1"/>
                     <ComboBox Name="SecondPathPointComboBox" Grid.Row="3"/>
                     <Button Grid.Row="5" Grid.ColumnSpan="2" Content="Calculate" Click="CalculatePathButton_Click"/>
-                </Grid>
-            </Border>
-        </Popup>
-        <Popup Placement="Center" x:Name="SettingsPopup" IsOpen="False" StaysOpen="False" MinWidth="100" MinHeight="100">
-            <Border BorderBrush="Black" BorderThickness="1">
-                <Grid Background="White">
-                    <Grid.ColumnDefinitions>
-                        <ColumnDefinition Width="1*"/>
-                        <ColumnDefinition Width="1*"/>
-                    </Grid.ColumnDefinitions>
-                    <Grid.RowDefinitions>
-                        <RowDefinition Height="1*"/>
-                        <RowDefinition Height="1*"/>
-                        <RowDefinition Height="1*"/>
-                        <RowDefinition Height="1*"/>
-                        <RowDefinition Height="1*"/>
-                        <RowDefinition Height="1*"/>
-                    </Grid.RowDefinitions>
-                    <Button Grid.Row="5" Grid.ColumnSpan="2" Content="Apply"/>
                 </Grid>
             </Border>
         </Popup>

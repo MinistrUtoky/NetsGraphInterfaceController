@@ -797,13 +797,6 @@ namespace InterfaceForGraphCalculations
             dataWindow.Show();
             dataWindow.SwitchTable("VISUAL_BRANCHES");
         }
-        private void PathsDB_Click(object sender, RoutedEventArgs e)
-        {
-            if (dataWindow != null) dataWindow.Close();
-            dataWindow = new DataWindow();
-            dataWindow.Closed += (sender, args) => dataWindow = null;
-            dataWindow.Show();
-        }
 
         private void SaveToCSV_Click(object sender, RoutedEventArgs e)
         {
