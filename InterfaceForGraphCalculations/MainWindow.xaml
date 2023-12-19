@@ -79,7 +79,7 @@
             <Button Content="Total price" Click="TotalPrice_Click"/>
             <TextBlock TextWrapping="Wrap" Name="InfoField"></TextBlock>
         </StackPanel>
-        <Popup Placement="Center" x:Name="NewGraphPopup" IsOpen="False" MinWidth="100" MinHeight="50">
+        <Popup Placement="Center" x:Name="NewGraphPopup" IsOpen="False" StaysOpen="True" MinWidth="100" MinHeight="50">
             <Border BorderBrush="Black" BorderThickness="1">
                 <Grid Background="White">
                     <Grid.ColumnDefinitions>

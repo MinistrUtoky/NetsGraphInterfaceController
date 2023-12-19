@@ -44,23 +44,7 @@ namespace InterfaceForGraphCalculations
         }
 
         private void TableButton_Click(object sender, RoutedEventArgs e) => SwitchTable((sender as Button).Content.ToString());
-        
 
-        public void DB_Remove_Record(string id)
-        {
-            /*
-            string sSQL = "SELECT * FROM " + currentTableName + " WHERE [" + columnNames[0] + "] = '" + id + "'";
-            DataTable tbl = DBClass.Get_DataTable(sSQL);
-            if (tbl.Rows.Count > 0)
-            {
-                string sql_Remove = "DELETE FROM " + currentTableName + " WHERE [" + columnNames[0] + "] = '" + id + "'";
-                DBClass.Execute_SQL(sql_Remove);
-            }*/
-        }       
-
-        private void Nope_Click(object sender, RoutedEventArgs e) => (sender as MenuItem).Header = "Nope";
-        private void Help_Click(object sender, RoutedEventArgs e) => Jss.IsOpen = true;
-        private void Thanks_Click(object sender, RoutedEventArgs e) => Jss.IsOpen = false;
     
     }
 }

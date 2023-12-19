@@ -804,6 +804,7 @@ namespace InterfaceForGraphCalculations
             GraphDescriptionCSV.Text = "";
             NewGraphPopup.IsOpen = false;
             SaveToCSVPopup.IsOpen = true;
+            this.IsEnabled = true;
         }
         private void SaveToCSVButton_Click(object sender, RoutedEventArgs e)
         {
@@ -954,6 +955,7 @@ namespace InterfaceForGraphCalculations
                 if (result == true)
                 {
                     ClearMainCanvas();
+                    ZoomAndCenterToDefaults();
                     string[] graphInfo = File.ReadAllText(importDialog.FileName).Split("---"),
                             pointsInfo = graphInfo[1].Split("\n"),
                             branchesInfo = graphInfo[2].Split("\n"),

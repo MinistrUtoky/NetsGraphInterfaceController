@@ -98,6 +98,7 @@ namespace InterfaceForGraphCalculations.classes
             }
             public double GetPrice(Dictionary<double, double> prices, double constructionPrice)
             {
+                if (!prices.ContainsKey(bandwidth)) throw new Exception("Prices haven't been filled");
                 return length * constructionPrice + prices[bandwidth];
             }
             public Edge(Vertex startVertex, Vertex endVertex, double bandwidth = 0, double currentFlow = 0, 
@@ -108,7 +109,6 @@ namespace InterfaceForGraphCalculations.classes
                 this.endVertex = endVertex;
                 this.currentFlow = currentFlow;
                 this.bandwidth = bandwidth;
-                this.length = Math.Sqrt(Math.Pow(endVertex.GetXCoordinate()-startVertex.GetXCoordinate(),2)-Math.Pow(endVertex.GetYCoordinate()-startVertex.GetYCoordinate(),2));
             }
         }
 
@@ -364,6 +364,14 @@ namespace InterfaceForGraphCalculations.classes
                             }
             tempFlows = new double[0][];
         }
+        public void AddbandwidthsToList(double newStandart)
+        {
+            possibleBandwidths.Add(newStandart);
+        }
+        public void RemovebandwidthsFromList(double oldStandart)
+        {
+            possibleBandwidths.Remove(oldStandart);
+        }
         public void Changebandwidth(Edge edge, double newbandwidth)
         {
             edges[edges.IndexOf(edge)].SetBandwidth(newbandwidth);
@@ -595,12 +603,19 @@ namespace InterfaceForGraphCalculations.classes
         }
         public double GetTotalPrice()
         {
-            double totalPrice = 0.0;
-            foreach (Edge e in edges)
+            try
             {
-                totalPrice += e.GetPrice(prices, constructionPrice);
+                double totalPrice = 0.0;
+                foreach (Edge e in edges)
+                {
+                    totalPrice += e.GetPrice(prices, constructionPrice);
+                }
+                return totalPrice;
             }
-            return totalPrice;
+            catch (Exception e)
+            {
+                throw new Exception(e.Message);
+            }
         }
         public double GetMessageLength() => messageLength;
         public void SetMessageLength(double length) => messageLength = length;

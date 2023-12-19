@@ -56,12 +56,6 @@
             </Popup>
             <Popup x:Name="New_Table_subPopup" Placement="Center" HorizontalAlignment="Center" VerticalAlignment="Center" Width="200" Height="200" IsOpen="False" StaysOpen="False">
             </Popup>
-            <Popup x:Name="Jss" Placement="Center" HorizontalAlignment="Center" VerticalAlignment="Center" Width="300" Height="300" IsOpen="False" StaysOpen="False">
-                <DockPanel Width="Auto" Height="Auto">
-                    <Image Source="/pictures/js.jpg"></Image>
-                    <Button Content="Thanks" Click="Thanks_Click"></Button>
-                </DockPanel>
-            </Popup>
         </Grid>
     </Grid>
 </Window>
