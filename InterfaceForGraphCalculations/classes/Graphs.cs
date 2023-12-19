@@ -108,6 +108,7 @@ namespace InterfaceForGraphCalculations.classes
                 this.endVertex = endVertex;
                 this.currentFlow = currentFlow;
                 this.bandwidth = bandwidth;
+                this.length = Math.Sqrt(Math.Pow(endVertex.GetXCoordinate()-startVertex.GetXCoordinate(),2)-Math.Pow(endVertex.GetYCoordinate()-startVertex.GetYCoordinate(),2));
             }
         }
 
@@ -362,14 +363,6 @@ namespace InterfaceForGraphCalculations.classes
                                 break;
                             }
             tempFlows = new double[0][];
-        }
-        public void AddbandwidthsToList(double newStandart)
-        {
-            possibleBandwidths.Add(newStandart);
-        }
-        public void RemovebandwidthsFromList(double oldStandart)
-        {
-            possibleBandwidths.Remove(oldStandart);
         }
         public void Changebandwidth(Edge edge, double newbandwidth)
         {
