@@ -149,7 +149,7 @@ namespace InterfaceForGraphCalculations {
                 return;
             }
             _contentLoaded = true;
-            System.Uri resourceLocater = new System.Uri("/InterfaceForGraphCalculations;component/datawindow.xaml", System.UriKind.Relative);
+            System.Uri resourceLocater = new System.Uri("/InterfaceForGraphCalculations;V1.0.0.0;component/datawindow.xaml", System.UriKind.Relative);
             
             #line 1 "..\..\..\DataWindow.xaml"
             System.Windows.Application.LoadComponent(this, resourceLocater);
