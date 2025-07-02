@@ -1,2 +1,2 @@
 # NetsGraphInterfaceController
-Some simple interface for graph manipulations and calculations
+Some simple interface for graph manipulations and calculations with WPF
